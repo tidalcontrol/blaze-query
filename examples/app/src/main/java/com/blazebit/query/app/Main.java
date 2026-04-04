@@ -193,6 +193,13 @@ import com.blazebit.query.connector.datadog.DatadogSecurityMonitoringRule;
 import com.blazebit.query.connector.datadog.DatadogSecuritySignal;
 import com.blazebit.query.connector.datadog.DatadogSyntheticsTest;
 import com.blazebit.query.connector.datadog.DatadogUser;
+import com.blazebit.query.connector.notion.NotionBlock;
+import com.blazebit.query.connector.notion.NotionComment;
+import com.blazebit.query.connector.notion.NotionDatabase;
+import com.blazebit.query.connector.notion.NotionDatabaseRow;
+import com.blazebit.query.connector.notion.NotionPage;
+import com.blazebit.query.connector.notion.NotionUser;
+import com.blazebit.query.connector.notion.NotionWorkspace;
 import com.blazebit.query.connector.observatory.ObservatoryClient;
 import com.blazebit.query.connector.view.EntityViewConnectorConfig;
 import com.blazebit.query.spi.DataFetchContext;
@@ -289,6 +296,8 @@ public class Main {
 	private static final String DATADOG_APP_KEY = "";
 	private static final String DATADOG_SITE = "datadoghq.eu";
 
+	private static final String NOTION_API_TOKEN = "";
+
 	private Main() {
 	}
 
@@ -322,6 +331,7 @@ public class Main {
 			queryContextBuilder.setProperty( EntityViewConnectorConfig.ENTITY_VIEW_MANAGER.getPropertyName(), evm );
 //			queryContextBuilder.setProperty( ObservatoryConnectorConfig.OBSERVATORY_CLIENT.getPropertyName(), createObservatoryClient());
 			queryContextBuilder.setProperty( DatadogConnectorConfig.DATADOG_API_CLIENT.getPropertyName(), createDatadogApiClient());
+//			queryContextBuilder.setProperty( NotionConnectorConfig.NOTION_CLIENT.getPropertyName(), new NotionClient( NOTION_API_TOKEN ) );
 //			queryContextBuilder.setProperty( GitlabConnectorConfig.GITLAB_API.getPropertyName(), createGitlabApi());
 //			queryContextBuilder.setProperty( GitlabGraphQlConnectorConfig.GITLAB_GRAPHQL_CLIENT.getPropertyName(), createGitlabGraphQLClient());
 //            queryContextBuilder.setProperty(KandjiConnectorConfig.API_CLIENT.getPropertyName(), createKandjiApiClient());
@@ -577,6 +587,15 @@ public class Main {
 			queryContextBuilder.registerSchemaObjectAlias( DatadogMonitorDowntime.class, "DatadogMonitorDowntime" );
 			queryContextBuilder.registerSchemaObjectAlias( DatadogPermission.class, "DatadogPermission" );
 
+			// Notion
+			queryContextBuilder.registerSchemaObjectAlias( NotionWorkspace.class, "NotionWorkspace" );
+			queryContextBuilder.registerSchemaObjectAlias( NotionUser.class, "NotionUser" );
+			queryContextBuilder.registerSchemaObjectAlias( NotionPage.class, "NotionPage" );
+			queryContextBuilder.registerSchemaObjectAlias( NotionDatabase.class, "NotionDatabase" );
+			queryContextBuilder.registerSchemaObjectAlias( NotionBlock.class, "NotionBlock" );
+			queryContextBuilder.registerSchemaObjectAlias( NotionComment.class, "NotionComment" );
+			queryContextBuilder.registerSchemaObjectAlias( NotionDatabaseRow.class, "NotionDatabaseRow" );
+
 			// Observatory
 			queryContextBuilder.registerSchemaObject(
 					com.blazebit.query.connector.observatory.ObservatoryScan.class,
@@ -597,6 +616,7 @@ public class Main {
 //					testGcp( session );
 //					testGoogleWorkspace( session );
 					testDatadog( session );
+//					testNotion( session );
 //					testAws( session );
 //					testGitlab( session );
 //					testGitHub( session );
@@ -1997,6 +2017,122 @@ public class Main {
 		List<Object[]> permissionRestrictedResult = permissionRestrictedQuery.getResultList();
 		System.out.println( "Datadog Permissions - restricted" );
 		print( permissionRestrictedResult );
+	}
+
+	private static void testNotion(QuerySession session) {
+		// Workspace: confirm which workspace this integration is installed in
+		TypedQuery<Object[]> workspaceQuery = session.createQuery(
+				"SELECT w.workspaceId, w.workspaceName, w.botId, w.botName FROM NotionWorkspace w" );
+		List<Object[]> workspaceResult = workspaceQuery.getResultList();
+		System.out.println( "Notion Workspace" );
+		print( workspaceResult );
+
+		// Users: all workspace members
+		TypedQuery<Object[]> userQuery = session.createQuery(
+				"SELECT u.id, u.name, u.type, u.email FROM NotionUser u" );
+		List<Object[]> userResult = userQuery.getResultList();
+		System.out.println( "Notion Users" );
+		print( userResult );
+
+		// Users: bot integrations and their ownership type
+		TypedQuery<Object[]> botQuery = session.createQuery(
+				"SELECT u.id, u.name, u.botOwnerType FROM NotionUser u WHERE u.type = 'bot'" );
+		List<Object[]> botResult = botQuery.getResultList();
+		System.out.println( "Notion Bot Integrations" );
+		print( botResult );
+
+		// Pages: all pages with ownership and public status
+		TypedQuery<Object[]> pageQuery = session.createQuery(
+				"SELECT p.id, p.createdById, p.lastEditedById, p.parentType, p.archived, p.inTrash, p.locked, p.publicUrl FROM NotionPage p" );
+		List<Object[]> pageResult = pageQuery.getResultList();
+		System.out.println( "Notion Pages" );
+		print( pageResult );
+
+		// Pages: publicly shared pages — data exposure risk
+		TypedQuery<Object[]> publicPageQuery = session.createQuery(
+				"SELECT p.id, p.publicUrl FROM NotionPage p WHERE p.publicUrl IS NOT NULL" );
+		List<Object[]> publicPageResult = publicPageQuery.getResultList();
+		System.out.println( "Notion Pages - publicly shared (Share to web enabled)" );
+		print( publicPageResult );
+
+		// Pages: locked pages (content freeze controls)
+		TypedQuery<Object[]> lockedPageQuery = session.createQuery(
+				"SELECT p.id, p.createdById, p.lastEditedTime FROM NotionPage p WHERE p.locked = true" );
+		List<Object[]> lockedPageResult = lockedPageQuery.getResultList();
+		System.out.println( "Notion Pages - locked" );
+		print( lockedPageResult );
+
+		// Databases: all databases
+		TypedQuery<Object[]> databaseQuery = session.createQuery(
+				"SELECT d.id, d.title, d.parentType, d.archived, d.inTrash, d.inline FROM NotionDatabase d" );
+		List<Object[]> databaseResult = databaseQuery.getResultList();
+		System.out.println( "Notion Databases" );
+		print( databaseResult );
+
+		// Databases: inline databases (embedded in pages, less visible)
+		TypedQuery<Object[]> inlineDatabaseQuery = session.createQuery(
+				"SELECT d.id, d.title, d.parentId FROM NotionDatabase d WHERE d.inline = true" );
+		List<Object[]> inlineDatabaseResult = inlineDatabaseQuery.getResultList();
+		System.out.println( "Notion Databases - inline (embedded in pages)" );
+		print( inlineDatabaseResult );
+
+		// Blocks: DLP scan for potentially sensitive content
+		TypedQuery<Object[]> sensitiveBlockQuery = session.createQuery(
+				"""
+						SELECT b.id, b.pageId, b.type, b.plainText
+						FROM NotionBlock b
+						WHERE b.plainText LIKE '%password%'
+						OR b.plainText LIKE '%secret%'
+						OR b.plainText LIKE '%api_key%'
+						OR b.plainText LIKE '%token%'
+						OR b.plainText LIKE '%credential%'
+						""" );
+		List<Object[]> sensitiveBlockResult = sensitiveBlockQuery.getResultList();
+		System.out.println( "Notion Blocks - potentially sensitive content (DLP)" );
+		print( sensitiveBlockResult );
+
+		// Comments: DLP scan for sensitive content in comments
+		TypedQuery<Object[]> sensitiveCommentQuery = session.createQuery(
+				"""
+						SELECT c.id, c.pageId, c.createdById, c.plainText
+						FROM NotionComment c
+						WHERE c.plainText LIKE '%password%'
+						OR c.plainText LIKE '%secret%'
+						OR c.plainText LIKE '%api_key%'
+						OR c.plainText LIKE '%token%'
+						""" );
+		List<Object[]> sensitiveCommentResult = sensitiveCommentQuery.getResultList();
+		System.out.println( "Notion Comments - potentially sensitive content (DLP)" );
+		print( sensitiveCommentResult );
+
+		// Database rows: DLP scan across all row property values (requires notionDatabaseRowsEnabled=true)
+		TypedQuery<Object[]> rowScanQuery = session.createQuery(
+				"""
+						SELECT r.id, r.databaseId, r.title, r.propertiesPlainText
+						FROM NotionDatabaseRow r
+						WHERE r.propertiesPlainText LIKE '%SSN%'
+						OR r.propertiesPlainText LIKE '%passport%'
+						OR r.propertiesPlainText LIKE '%date of birth%'
+						""" );
+		List<Object[]> rowScanResult = rowScanQuery.getResultList();
+		System.out.println( "Notion Database Rows - potential PII (DLP)" );
+		print( rowScanResult );
+
+		// Cross-entity: pages last edited by users no longer in the workspace
+		// (requires joining NotionPage and NotionUser)
+		TypedQuery<Object[]> orphanedPageQuery = session.createQuery(
+				"""
+						SELECT p.id, p.lastEditedById, p.lastEditedTime
+						FROM NotionPage p
+						WHERE p.inTrash = false
+						AND p.archived = false
+						AND NOT EXISTS (
+							SELECT 1 FROM NotionUser u WHERE u.id = p.lastEditedById
+						)
+						""" );
+		List<Object[]> orphanedPageResult = orphanedPageQuery.getResultList();
+		System.out.println( "Notion Pages - last edited by unknown user (possible deprovisioned account)" );
+		print( orphanedPageResult );
 	}
 
 	private static com.datadog.api.client.ApiClient createDatadogApiClient() {

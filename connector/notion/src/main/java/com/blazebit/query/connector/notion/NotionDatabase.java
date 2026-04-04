@@ -42,7 +42,7 @@ public class NotionDatabase {
 	/** {@code true} when the database is rendered inline inside a page. */
 	private final boolean inline;
 
-	private NotionDatabase(
+	NotionDatabase(
 			String id,
 			String title,
 			String createdTime,

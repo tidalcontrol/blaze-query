@@ -50,7 +50,7 @@ public class NotionDatabaseRow {
 	 */
 	private final String propertiesPlainText;
 
-	private NotionDatabaseRow(
+	NotionDatabaseRow(
 			String id,
 			String databaseId,
 			String createdTime,

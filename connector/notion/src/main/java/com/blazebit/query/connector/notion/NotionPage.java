@@ -49,7 +49,7 @@ public class NotionPage {
 	private final String parentId;
 	private final String url;
 
-	private NotionPage(
+	NotionPage(
 			String id,
 			String createdTime,
 			String lastEditedTime,

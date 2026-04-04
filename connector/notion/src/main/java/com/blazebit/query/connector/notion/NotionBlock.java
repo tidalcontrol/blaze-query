@@ -54,7 +54,7 @@ public class NotionBlock {
 			"bulleted_list_item", "numbered_list_item", "quote", "callout",
 			"code", "toggle", "to_do" );
 
-	private NotionBlock(
+	NotionBlock(
 			String id,
 			String pageId,
 			String type,

@@ -36,7 +36,7 @@ public class NotionUser {
 	/** {@code "workspace"} or {@code "user"} — non-null only when {@code type = "bot"}. */
 	private final String botOwnerType;
 
-	private NotionUser(
+	NotionUser(
 			String id,
 			String type,
 			String name,

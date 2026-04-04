@@ -39,7 +39,7 @@ public class NotionComment {
 	/** Concatenated plain-text content of the comment's rich-text segments. */
 	private final String plainText;
 
-	private NotionComment(
+	NotionComment(
 			String id,
 			String pageId,
 			String blockId,

@@ -38,7 +38,7 @@ public class NotionWorkspace {
 	/** Raw string representation of the max file upload size limit, e.g. {@code "5mb"}. */
 	private final String maxFileUploadSize;
 
-	private NotionWorkspace(
+	NotionWorkspace(
 			String workspaceId,
 			String workspaceName,
 			String botId,
