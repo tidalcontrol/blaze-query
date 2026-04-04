@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Fetches Scaleway IAM users for security and compliance queries.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayIamUserDataFetcher implements DataFetcher<ScalewayIamUser>, Serializable {

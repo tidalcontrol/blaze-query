@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Used for compliance checks such as: public containers,
  * missing env-var secrets detection, and scaling configuration.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayContainer(

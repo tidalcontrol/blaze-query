@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway SSH keys for credential hygiene and access auditing.
  * Supports detection of disabled keys and stale key assignments.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayIamSshKeyDataFetcher implements DataFetcher<ScalewayIamSshKey>, Serializable {

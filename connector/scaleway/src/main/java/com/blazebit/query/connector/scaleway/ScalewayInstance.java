@@ -14,7 +14,7 @@ import java.util.List;
  * Used for infrastructure auditing: running state, public exposure, security group assignment,
  * IPv6 enablement, and deletion protection.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayInstance(

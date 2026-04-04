@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Flexible IP addresses for compliance auditing:
  * unattached/orphaned IPs, IP lifecycle management, and attack surface reduction.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayFlexibleIpDataFetcher implements DataFetcher<ScalewayFlexibleIp>, Serializable {

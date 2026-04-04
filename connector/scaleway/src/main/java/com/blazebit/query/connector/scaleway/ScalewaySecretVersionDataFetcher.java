@@ -20,7 +20,7 @@ import java.util.List;
  * identifying the age of the latest version to detect secrets that
  * have never been rotated or are overdue for rotation.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewaySecretVersionDataFetcher implements DataFetcher<ScalewaySecretVersion>, Serializable {

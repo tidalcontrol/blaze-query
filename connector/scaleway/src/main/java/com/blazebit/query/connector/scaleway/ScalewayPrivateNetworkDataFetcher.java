@@ -20,7 +20,7 @@ import java.util.List;
  * verifying that workloads are deployed within private networks
  * rather than solely relying on public interfaces.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayPrivateNetworkDataFetcher implements DataFetcher<ScalewayPrivateNetwork>, Serializable {

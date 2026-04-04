@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Used for compliance checks such as: orphaned/unattached volumes,
  * volume type auditing, and storage hygiene.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayVolume(

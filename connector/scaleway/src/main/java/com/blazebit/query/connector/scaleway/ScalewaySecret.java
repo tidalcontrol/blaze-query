@@ -14,7 +14,7 @@ import java.util.List;
  * Used for compliance checks such as: detecting secrets with no active version,
  * secrets that have never been rotated, and orphaned secrets by project.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewaySecret(

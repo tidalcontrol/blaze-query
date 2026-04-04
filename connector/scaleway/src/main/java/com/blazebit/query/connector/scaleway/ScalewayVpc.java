@@ -14,7 +14,7 @@ import java.util.List;
  * Used for network segmentation auditing: detecting default VPCs with routing
  * enabled (which allows all private networks to communicate, a lateral movement risk).
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayVpc(

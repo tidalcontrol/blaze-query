@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway IAM API keys for credential hygiene auditing.
  * Supports detection of keys without expiry, expired keys, and orphaned keys.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayIamApiKeyDataFetcher implements DataFetcher<ScalewayIamApiKey>, Serializable {

@@ -12,7 +12,7 @@ import java.lang.reflect.Member;
  * Convention context for Scaleway model records.
  * Allows full recursive traversal of all component accessor methods.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayConventionContext implements ConventionContext {

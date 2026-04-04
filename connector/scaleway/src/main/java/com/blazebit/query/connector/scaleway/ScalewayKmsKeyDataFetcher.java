@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway KMS keys for encryption compliance auditing:
  * keys without a rotation policy, disabled/locked keys, and overdue rotations.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayKmsKeyDataFetcher implements DataFetcher<ScalewayKmsKey>, Serializable {

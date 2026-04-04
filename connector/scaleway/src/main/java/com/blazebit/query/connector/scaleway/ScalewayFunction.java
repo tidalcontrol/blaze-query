@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Used for compliance checks such as: public functions,
  * missing env-var secrets detection, and runtime version auditing.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayFunction(

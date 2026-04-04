@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Fetches Scaleway IAM groups for access control and group membership auditing.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayIamGroupDataFetcher implements DataFetcher<ScalewayIamGroup>, Serializable {

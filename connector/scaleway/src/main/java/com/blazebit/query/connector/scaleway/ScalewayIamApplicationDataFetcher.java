@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Fetches Scaleway IAM applications (service principals) for service account auditing.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayIamApplicationDataFetcher implements DataFetcher<ScalewayIamApplication>, Serializable {

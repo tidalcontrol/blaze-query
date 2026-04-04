@@ -26,7 +26,7 @@ import java.util.Set;
  * IAM, Instance, Secret Manager, Key Manager, Audit Trail, Kubernetes,
  * Container Registry, and VPC APIs.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayClient implements Serializable {

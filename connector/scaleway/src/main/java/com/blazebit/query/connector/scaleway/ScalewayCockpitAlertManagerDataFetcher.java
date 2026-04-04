@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Cockpit Alert Manager configuration per region for compliance auditing:
  * missing alert contacts, disabled managed alerts, and observability coverage gaps.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayCockpitAlertManagerDataFetcher implements DataFetcher<ScalewayCockpitAlertManager>, Serializable {

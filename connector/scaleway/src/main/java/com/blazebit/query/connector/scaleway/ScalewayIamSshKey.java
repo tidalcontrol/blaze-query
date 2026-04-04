@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Represents a Scaleway IAM SSH key. Used for auditing access credentials:
  * disabled keys, stale keys, and per-project key assignment.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayIamSshKey(

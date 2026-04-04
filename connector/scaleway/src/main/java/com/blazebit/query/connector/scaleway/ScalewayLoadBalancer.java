@@ -14,7 +14,7 @@ import java.util.List;
  * Used for compliance checks such as: unencrypted frontends,
  * TLS enforcement, and load balancer security posture.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayLoadBalancer(

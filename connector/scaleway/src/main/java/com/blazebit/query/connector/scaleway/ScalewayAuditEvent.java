@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Used for security investigations and compliance reporting: detecting forbidden
  * access attempts, privilege escalation activity, and unusual API usage patterns.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayAuditEvent(

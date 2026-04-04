@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Container Registry namespaces for compliance auditing:
  * publicly accessible registries and namespaces with no images.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayRegistryNamespaceDataFetcher implements DataFetcher<ScalewayRegistryNamespace>, Serializable {

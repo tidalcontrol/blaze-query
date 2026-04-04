@@ -14,7 +14,7 @@ import java.util.List;
  * Used for compliance checks such as: orphaned snapshots,
  * snapshot age auditing, and storage hygiene.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewaySnapshot(

@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Represents a Scaleway IAM API key (access key + secret key pair).
  * Used for auditing credential hygiene: expiry, unused keys, and key ownership.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayIamApiKey(

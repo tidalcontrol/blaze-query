@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for Scaleway Kubernetes cluster and Container Registry queries —
  * outdated versions, upgrade availability, and public image exposure.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayK8sAndRegistryTests {

@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Used for network security auditing: default policies, stateful configuration,
  * SMTP blocking, and identifying overly permissive groups.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewaySecurityGroup(

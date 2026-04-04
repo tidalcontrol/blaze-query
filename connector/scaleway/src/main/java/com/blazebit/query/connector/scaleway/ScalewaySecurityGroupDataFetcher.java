@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway security groups for network security auditing:
  * permissive default policies, stateful configuration, and SMTP blocking.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewaySecurityGroupDataFetcher implements DataFetcher<ScalewaySecurityGroup>, Serializable {

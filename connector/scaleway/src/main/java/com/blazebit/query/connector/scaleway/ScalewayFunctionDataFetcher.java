@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Serverless Functions for compliance auditing:
  * public functions, env-var secret leakage, and runtime version auditing.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayFunctionDataFetcher implements DataFetcher<ScalewayFunction>, Serializable {

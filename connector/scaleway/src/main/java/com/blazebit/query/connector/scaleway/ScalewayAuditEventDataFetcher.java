@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Audit Trail events for security investigation and compliance reporting:
  * detecting forbidden access attempts, unusual API call patterns, and privilege escalation.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayAuditEventDataFetcher implements DataFetcher<ScalewayAuditEvent>, Serializable {

@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Represents a Scaleway IAM application (non-human/service principal).
  * Used for auditing service account permissions and API key ownership.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayIamApplication(

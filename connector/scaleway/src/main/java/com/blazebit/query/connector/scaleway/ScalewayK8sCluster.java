@@ -15,7 +15,7 @@ import java.util.List;
  * clusters with upgrades available, public API server exposure,
  * and clusters not connected to a private network.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayK8sCluster(

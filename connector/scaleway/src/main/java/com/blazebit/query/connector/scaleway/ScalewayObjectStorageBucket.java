@@ -14,7 +14,7 @@ import java.util.List;
  * Used for compliance checks such as: public bucket exposure,
  * orphaned/empty buckets, and data volume hygiene.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayObjectStorageBucket(

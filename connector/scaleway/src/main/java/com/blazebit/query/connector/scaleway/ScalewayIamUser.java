@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Represents a Scaleway IAM user. Used for compliance checks such as
  * MFA enforcement, account status, and user type classification.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayIamUser(

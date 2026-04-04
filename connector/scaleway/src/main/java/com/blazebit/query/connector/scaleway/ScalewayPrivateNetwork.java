@@ -14,7 +14,7 @@ import java.util.List;
  * Used for network isolation auditing: verifying that compute resources
  * are deployed within private networks and not solely on public interfaces.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayPrivateNetwork(

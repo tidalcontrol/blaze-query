@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Instance Snapshots for compliance auditing:
  * orphaned snapshots, snapshot age auditing, and storage hygiene.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewaySnapshotDataFetcher implements DataFetcher<ScalewaySnapshot>, Serializable {

@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Used for compliance checks such as: missing SPF/DKIM/MX configuration,
  * domain health monitoring, and email delivery hygiene.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayTemDomain(

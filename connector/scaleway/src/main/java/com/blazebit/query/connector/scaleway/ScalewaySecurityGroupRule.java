@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Used for network access auditing: detecting overly permissive inbound rules,
  * unrestricted CIDR ranges (0.0.0.0/0), and open port ranges.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewaySecurityGroupRule(

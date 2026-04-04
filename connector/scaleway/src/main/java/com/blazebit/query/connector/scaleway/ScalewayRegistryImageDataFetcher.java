@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Container Registry images for compliance auditing:
  * publicly visible images and untagged (dangling) images.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayRegistryImageDataFetcher implements DataFetcher<ScalewayRegistryImage>, Serializable {

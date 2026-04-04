@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Block Storage Volumes for compliance auditing:
  * orphaned/unattached volumes, volume type auditing, and storage hygiene.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayVolumeDataFetcher implements DataFetcher<ScalewayVolume>, Serializable {

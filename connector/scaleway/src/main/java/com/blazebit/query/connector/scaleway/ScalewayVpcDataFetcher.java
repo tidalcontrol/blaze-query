@@ -20,7 +20,7 @@ import java.util.List;
  * detecting default VPCs with routing enabled, which allows
  * unrestricted lateral movement between private networks.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayVpcDataFetcher implements DataFetcher<ScalewayVpc>, Serializable {

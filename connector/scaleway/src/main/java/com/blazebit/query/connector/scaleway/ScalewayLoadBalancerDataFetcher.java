@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Load Balancers for compliance auditing:
  * unencrypted frontends, TLS enforcement, and load balancer security posture.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayLoadBalancerDataFetcher implements DataFetcher<ScalewayLoadBalancer>, Serializable {

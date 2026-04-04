@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Managed Database instances for compliance auditing:
  * public endpoints, missing HA, and insufficient backup retention.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayDatabaseDataFetcher implements DataFetcher<ScalewayDatabase>, Serializable {

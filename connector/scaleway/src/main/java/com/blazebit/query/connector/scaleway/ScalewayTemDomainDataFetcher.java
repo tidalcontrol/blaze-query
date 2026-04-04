@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Transactional Email domains for compliance auditing:
  * missing SPF/DKIM/MX configuration, domain health, and email delivery hygiene.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayTemDomainDataFetcher implements DataFetcher<ScalewayTemDomain>, Serializable {

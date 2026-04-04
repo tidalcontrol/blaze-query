@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Compute Instances for infrastructure auditing:
  * running state, public IP exposure, security group assignment, and deletion protection.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayInstanceDataFetcher implements DataFetcher<ScalewayInstance>, Serializable {

@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Secret Manager secrets for compliance auditing:
  * disabled secrets, secrets with zero versions, and stale secrets by project.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewaySecretDataFetcher implements DataFetcher<ScalewaySecret>, Serializable {

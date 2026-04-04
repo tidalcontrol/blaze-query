@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Used for rotation auditing: detecting secrets whose latest version
  * is very old (indicating no rotation has occurred).
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewaySecretVersion(

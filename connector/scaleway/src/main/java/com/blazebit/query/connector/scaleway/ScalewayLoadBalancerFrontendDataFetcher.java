@@ -20,7 +20,7 @@ import java.util.List;
  * TLS enforcement, unencrypted HTTP endpoints, and certificate management.
  * Depends on ScalewayLoadBalancer being fetched first.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayLoadBalancerFrontendDataFetcher implements DataFetcher<ScalewayLoadBalancerFrontend>, Serializable {

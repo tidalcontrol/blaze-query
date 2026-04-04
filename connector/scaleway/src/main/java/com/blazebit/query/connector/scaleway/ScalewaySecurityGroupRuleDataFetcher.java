@@ -20,7 +20,7 @@ import java.util.List;
  * unrestricted CIDR ranges (0.0.0.0/0), overly permissive inbound rules,
  * and wide port range exposure.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewaySecurityGroupRuleDataFetcher implements DataFetcher<ScalewaySecurityGroupRule>, Serializable {

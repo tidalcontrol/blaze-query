@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Represents a Scaleway IAM policy (permission set attached to users, groups, or applications).
  * Used for privilege escalation detection and least-privilege auditing.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayIamPolicy(

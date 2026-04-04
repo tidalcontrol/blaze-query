@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Used for compliance checks such as: keys without a rotation policy,
  * keys past their scheduled rotation date, and disabled/locked keys.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayKmsKey(

@@ -9,7 +9,7 @@ import com.blazebit.query.spi.DataFetcherConfig;
 /**
  * Configuration properties for the Scaleway connector.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public final class ScalewayConnectorConfig {

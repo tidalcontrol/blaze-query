@@ -14,7 +14,7 @@ import java.util.List;
  * Used for compliance checks such as: publicly visible images,
  * images with no tags (untagged/dangling), and stale images.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayRegistryImage(

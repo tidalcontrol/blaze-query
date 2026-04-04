@@ -20,7 +20,7 @@ import java.util.List;
  * outdated Kubernetes versions, pending upgrades, and clusters not
  * isolated within a private network.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayK8sClusterDataFetcher implements DataFetcher<ScalewayK8sCluster>, Serializable {

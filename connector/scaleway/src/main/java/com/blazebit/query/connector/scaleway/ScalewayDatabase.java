@@ -14,7 +14,7 @@ import java.util.List;
  * Used for compliance checks such as: publicly accessible endpoints,
  * missing HA configuration, and insufficient backup retention.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayDatabase(

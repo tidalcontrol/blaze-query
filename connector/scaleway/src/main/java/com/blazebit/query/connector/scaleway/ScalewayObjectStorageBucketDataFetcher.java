@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Object Storage buckets for security and compliance auditing:
  * public bucket exposure, orphaned/empty buckets, and data volume hygiene.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayObjectStorageBucketDataFetcher implements DataFetcher<ScalewayObjectStorageBucket>, Serializable {

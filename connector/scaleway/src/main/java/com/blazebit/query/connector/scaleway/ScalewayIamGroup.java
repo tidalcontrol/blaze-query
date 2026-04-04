@@ -13,7 +13,7 @@ import java.util.List;
  * Represents a Scaleway IAM group (a collection of users and/or applications).
  * Used for access control auditing and least-privilege analysis.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayIamGroup(

@@ -19,7 +19,7 @@ import java.util.List;
  * Fetches Scaleway Serverless Containers for compliance auditing:
  * public containers, env-var secret leakage, and scaling configuration.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class ScalewayContainerDataFetcher implements DataFetcher<ScalewayContainer>, Serializable {

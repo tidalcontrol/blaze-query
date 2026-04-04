@@ -14,7 +14,7 @@ import java.util.List;
  * Used for compliance checks such as: unattached/orphaned IPs,
  * IP lifecycle management, and attack surface reduction.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public record ScalewayFlexibleIp(
