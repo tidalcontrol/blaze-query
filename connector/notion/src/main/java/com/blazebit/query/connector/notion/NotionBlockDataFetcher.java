@@ -11,23 +11,26 @@ import com.blazebit.query.spi.DataFetcherException;
 import com.blazebit.query.spi.DataFormat;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Fetches the top-level block children for all pages accessible to the integration
- * via {@code GET /v1/blocks/{pageId}/children}.
+ * Fetches block children for all pages accessible to the integration via
+ * {@code GET /v1/blocks/{pageId}/children}, with optional recursive traversal.
  *
- * <p>This fetcher depends on {@link NotionPageDataFetcher}: it first retrieves the
- * full page list from the session cache and then issues one API call per page to load
- * its direct block children. Only the first level of the block tree is fetched; use
- * {@link NotionClient#getBlockChildren(String)} directly to retrieve deeper nesting.
+ * <p>This fetcher depends on {@link NotionPageDataFetcher}: it retrieves the page list
+ * from the session cache and issues one API call per page (and optionally more for
+ * nested blocks).
  *
- * <p><b>Performance note:</b> The number of API calls is proportional to the number of
- * pages the integration can access. In large workspaces, pre-filter with a SQL
- * {@code WHERE pageId = ?} predicate or limit the pages shared with the integration to
- * reduce load.
+ * <p><b>Depth control:</b> By default only the direct children of each page are fetched
+ * (depth 1). Set {@link NotionConnectorConfig#BLOCK_MAX_DEPTH} to a higher value to
+ * traverse nested content such as toggle blocks and column layouts. Each additional level
+ * of depth issues one API call per block with {@code has_children = true}.
+ *
+ * <p><b>Performance note:</b> API calls grow rapidly with depth in deeply nested pages.
+ * Use depth &gt; 1 only when complete DLP coverage of nested content is required.
  *
  * @author Blazebit
  * @since 1.0.0
@@ -35,6 +38,8 @@ import java.util.List;
 public class NotionBlockDataFetcher implements DataFetcher<NotionBlock>, Serializable {
 
 	public static final NotionBlockDataFetcher INSTANCE = new NotionBlockDataFetcher();
+
+	private static final int DEFAULT_MAX_DEPTH = 1;
 
 	private NotionBlockDataFetcher() {
 	}
@@ -44,12 +49,12 @@ public class NotionBlockDataFetcher implements DataFetcher<NotionBlock>, Seriali
 		try {
 			List<NotionClient> clients = NotionConnectorConfig.NOTION_CLIENT.getAll( context );
 			List<? extends NotionPage> pages = context.getSession().getOrFetch( NotionPage.class );
+			Integer configuredDepth = NotionConnectorConfig.BLOCK_MAX_DEPTH.find( context );
+			int maxDepth = ( configuredDepth != null && configuredDepth > 0 ) ? configuredDepth : DEFAULT_MAX_DEPTH;
 			List<NotionBlock> list = new ArrayList<>();
 			for ( NotionClient client : clients ) {
 				for ( NotionPage page : pages ) {
-					for ( JsonNode node : client.getBlockChildren( page.getId() ) ) {
-						list.add( NotionBlock.fromJson( node, page.getId() ) );
-					}
+					fetchBlocks( client, page.getId(), page.getId(), 1, maxDepth, list );
 				}
 			}
 			return list;
@@ -60,6 +65,22 @@ public class NotionBlockDataFetcher implements DataFetcher<NotionBlock>, Seriali
 		}
 		catch (Exception e) {
 			throw new DataFetcherException( "Could not fetch Notion block list", e );
+		}
+	}
+
+	private void fetchBlocks(
+			NotionClient client,
+			String blockId,
+			String pageId,
+			int currentDepth,
+			int maxDepth,
+			List<NotionBlock> accumulator) throws IOException, InterruptedException {
+		for ( JsonNode node : client.getBlockChildren( blockId ) ) {
+			NotionBlock block = NotionBlock.fromJson( node, pageId );
+			accumulator.add( block );
+			if ( block.isHasChildren() && currentDepth < maxDepth ) {
+				fetchBlocks( client, block.getId(), pageId, currentDepth + 1, maxDepth, accumulator );
+			}
 		}
 	}
 

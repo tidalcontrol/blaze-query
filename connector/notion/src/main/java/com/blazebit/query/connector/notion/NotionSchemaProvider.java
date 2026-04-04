@@ -23,7 +23,10 @@ import java.util.Set;
  *   <li>{@link NotionUser} — all workspace users (persons and bots)</li>
  *   <li>{@link NotionPage} — all pages accessible to the integration</li>
  *   <li>{@link NotionDatabase} — all databases accessible to the integration</li>
- *   <li>{@link NotionBlock} — top-level block content of all accessible pages</li>
+ *   <li>{@link NotionBlock} — block content of all accessible pages (configurable depth)</li>
+ *   <li>{@link NotionComment} — all comments on accessible pages (DLP + audit trail)</li>
+ *   <li>{@link NotionDatabaseRow} — rows from all accessible databases (opt-in via
+ *       {@link NotionConnectorConfig#DATABASE_ROWS_ENABLED})</li>
  * </ul>
  *
  * @author Blazebit
@@ -38,7 +41,9 @@ public final class NotionSchemaProvider implements QuerySchemaProvider {
 				NotionUserDataFetcher.INSTANCE,
 				NotionPageDataFetcher.INSTANCE,
 				NotionDatabaseDataFetcher.INSTANCE,
-				NotionBlockDataFetcher.INSTANCE
+				NotionBlockDataFetcher.INSTANCE,
+				NotionCommentDataFetcher.INSTANCE,
+				NotionDatabaseRowDataFetcher.INSTANCE
 		);
 	}
 }

@@ -128,6 +128,46 @@ public class NotionClient {
 		return paginatedGet( "/blocks/" + blockId + "/children" );
 	}
 
+	/**
+	 * Returns all comments on a page (top-level and block-anchored).
+	 *
+	 * <p>The Notion API accepts a {@code block_id} which can be a page UUID; it returns
+	 * all comments associated with that page.
+	 *
+	 * @param pageId the UUID of the page whose comments to retrieve
+	 * @return raw JSON nodes from {@code GET /v1/comments?block_id={pageId}}
+	 * @throws IOException if an I/O error occurs
+	 * @throws InterruptedException if the request is interrupted
+	 */
+	public List<JsonNode> listComments(String pageId) throws IOException, InterruptedException {
+		return paginatedGet( "/comments?block_id=" + pageId );
+	}
+
+	/**
+	 * Returns all rows in a database.
+	 *
+	 * @param databaseId the UUID of the database to query
+	 * @return raw JSON nodes from {@code POST /v1/databases/{databaseId}/query}
+	 * @throws IOException if an I/O error occurs
+	 * @throws InterruptedException if the request is interrupted
+	 */
+	public List<JsonNode> queryDatabase(String databaseId) throws IOException, InterruptedException {
+		List<JsonNode> results = new ArrayList<>();
+		String cursor = null;
+		do {
+			ObjectNode requestBody = objectMapper.createObjectNode();
+			requestBody.put( "page_size", PAGE_SIZE );
+			if ( cursor != null ) {
+				requestBody.put( "start_cursor", cursor );
+			}
+			JsonNode body = executeRequest( newPostRequest( "/databases/" + databaseId + "/query", requestBody ) );
+			body.get( "results" ).forEach( results::add );
+			cursor = nextCursor( body );
+		}
+		while ( cursor != null );
+		return results;
+	}
+
 	// -------------------------------------------------------------------------
 	// Write operations
 	// -------------------------------------------------------------------------
