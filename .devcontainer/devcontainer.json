@@ -1,0 +1,21 @@
+{
+  "build": {
+    "dockerfile": "Dockerfile",
+  },
+  "mounts": [
+    "source=riskops-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+    "source=riskops-claude-${devcontainerId},target=/home/ubuntu/.claude,type=volume",
+    "source=riskops-m2-cache-${devcontainerId},target=/home/ubuntu/.m2,type=volume",
+    "source=riskops-pnpm-store-${devcontainerId},target=/home/ubuntu/.local/share/pnpm/store,type=volume",
+    "source=${localEnv:HOME}/.gitconfig,target=/home/ubuntu/.gitconfig,type=bind,readonly",
+    "source=${localEnv:HOME}/.ssh,target=/home/ubuntu/.ssh,type=bind,readonly",
+    "source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
+  ],
+  "containerEnv": {
+    "SONAR_HOST_URL": "https://sonarcloud.io",
+    "SSH_AUTH_SOCK": "/ssh-agent",
+    "COLORTERM": "truecolor"
+  },
+  "runArgs": ["--env-file", ".devcontainer/.env"],
+  "postCreateCommand": ".devcontainer/post-create.sh",
+}
