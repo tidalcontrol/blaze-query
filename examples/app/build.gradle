@@ -66,6 +66,7 @@ dependencies {
     api project(':blaze-query-connector-google-workspace-endpoint-verification')
     api project(':blaze-query-connector-datadog')
     api project(':blaze-query-connector-observatory')
+    api project(':blaze-query-connector-hubspot')
     runtimeOnly libs.blaze.persistence.integration.hibernate6
 }
 

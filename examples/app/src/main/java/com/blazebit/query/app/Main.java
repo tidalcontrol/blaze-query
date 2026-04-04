@@ -193,6 +193,16 @@ import com.blazebit.query.connector.datadog.DatadogSecurityMonitoringRule;
 import com.blazebit.query.connector.datadog.DatadogSecuritySignal;
 import com.blazebit.query.connector.datadog.DatadogSyntheticsTest;
 import com.blazebit.query.connector.datadog.DatadogUser;
+import com.blazebit.query.connector.hubspot.HubspotAccountInfo;
+import com.blazebit.query.connector.hubspot.HubspotAuditLog;
+import com.blazebit.query.connector.hubspot.HubspotClient;
+import com.blazebit.query.connector.hubspot.HubspotLoginActivity;
+import com.blazebit.query.connector.hubspot.HubspotOwner;
+import com.blazebit.query.connector.hubspot.HubspotRole;
+import com.blazebit.query.connector.hubspot.HubspotSecurityActivity;
+import com.blazebit.query.connector.hubspot.HubspotSubscriptionDefinition;
+import com.blazebit.query.connector.hubspot.HubspotTeam;
+import com.blazebit.query.connector.hubspot.HubspotUser;
 import com.blazebit.query.connector.observatory.ObservatoryClient;
 import com.blazebit.query.connector.view.EntityViewConnectorConfig;
 import com.blazebit.query.spi.DataFetchContext;
@@ -289,6 +299,8 @@ public class Main {
 	private static final String DATADOG_APP_KEY = "";
 	private static final String DATADOG_SITE = "datadoghq.eu";
 
+	private static final String HUBSPOT_ACCESS_TOKEN = "";
+
 	private Main() {
 	}
 
@@ -322,6 +334,7 @@ public class Main {
 			queryContextBuilder.setProperty( EntityViewConnectorConfig.ENTITY_VIEW_MANAGER.getPropertyName(), evm );
 //			queryContextBuilder.setProperty( ObservatoryConnectorConfig.OBSERVATORY_CLIENT.getPropertyName(), createObservatoryClient());
 			queryContextBuilder.setProperty( DatadogConnectorConfig.DATADOG_API_CLIENT.getPropertyName(), createDatadogApiClient());
+//			queryContextBuilder.setProperty( HubspotConnectorConfig.HUBSPOT_CLIENT.getPropertyName(), createHubspotClient());
 //			queryContextBuilder.setProperty( GitlabConnectorConfig.GITLAB_API.getPropertyName(), createGitlabApi());
 //			queryContextBuilder.setProperty( GitlabGraphQlConnectorConfig.GITLAB_GRAPHQL_CLIENT.getPropertyName(), createGitlabGraphQLClient());
 //            queryContextBuilder.setProperty(KandjiConnectorConfig.API_CLIENT.getPropertyName(), createKandjiApiClient());
@@ -577,6 +590,17 @@ public class Main {
 			queryContextBuilder.registerSchemaObjectAlias( DatadogMonitorDowntime.class, "DatadogMonitorDowntime" );
 			queryContextBuilder.registerSchemaObjectAlias( DatadogPermission.class, "DatadogPermission" );
 
+			// HubSpot
+			queryContextBuilder.registerSchemaObjectAlias( HubspotUser.class, "HubspotUser" );
+			queryContextBuilder.registerSchemaObjectAlias( HubspotRole.class, "HubspotRole" );
+			queryContextBuilder.registerSchemaObjectAlias( HubspotOwner.class, "HubspotOwner" );
+			queryContextBuilder.registerSchemaObjectAlias( HubspotTeam.class, "HubspotTeam" );
+			queryContextBuilder.registerSchemaObjectAlias( HubspotAccountInfo.class, "HubspotAccountInfo" );
+			queryContextBuilder.registerSchemaObjectAlias( HubspotSubscriptionDefinition.class, "HubspotSubscriptionDefinition" );
+			queryContextBuilder.registerSchemaObjectAlias( HubspotAuditLog.class, "HubspotAuditLog" );
+			queryContextBuilder.registerSchemaObjectAlias( HubspotLoginActivity.class, "HubspotLoginActivity" );
+			queryContextBuilder.registerSchemaObjectAlias( HubspotSecurityActivity.class, "HubspotSecurityActivity" );
+
 			// Observatory
 			queryContextBuilder.registerSchemaObject(
 					com.blazebit.query.connector.observatory.ObservatoryScan.class,
@@ -597,6 +621,7 @@ public class Main {
 //					testGcp( session );
 //					testGoogleWorkspace( session );
 					testDatadog( session );
+//					testHubspot( session );
 //					testAws( session );
 //					testGitlab( session );
 //					testGitHub( session );
@@ -1997,6 +2022,156 @@ public class Main {
 		List<Object[]> permissionRestrictedResult = permissionRestrictedQuery.getResultList();
 		System.out.println( "Datadog Permissions - restricted" );
 		print( permissionRestrictedResult );
+	}
+
+	private static void testHubspot(QuerySession session) {
+		// Users with CRM contact access: list all active portal users
+		TypedQuery<Object[]> userQuery = session.createQuery(
+				"SELECT u.id, u.email, u.superAdmin, u.status FROM HubspotUser u WHERE u.status = 'ACTIVE'" );
+		List<Object[]> userResult = userQuery.getResultList();
+		System.out.println( "HubSpot Active Users" );
+		print( userResult );
+
+		// Stale users: inactive accounts that should be de-provisioned
+		TypedQuery<Object[]> staleQuery = session.createQuery(
+				"SELECT u.id, u.email, u.updatedAt FROM HubspotUser u WHERE u.status = 'INACTIVE'" );
+		List<Object[]> staleResult = staleQuery.getResultList();
+		System.out.println( "HubSpot Stale (Inactive) Users" );
+		print( staleResult );
+
+		// Super-admin accounts: privileged users that warrant extra scrutiny
+		TypedQuery<Object[]> adminQuery = session.createQuery(
+				"SELECT u.id, u.email FROM HubspotUser u WHERE u.superAdmin = true AND u.status = 'ACTIVE'" );
+		List<Object[]> adminResult = adminQuery.getResultList();
+		System.out.println( "HubSpot Super-Admin Users" );
+		print( adminResult );
+
+		// Roles: list permission sets to understand CRM access scope
+		TypedQuery<Object[]> roleQuery = session.createQuery(
+				"SELECT r.id, r.name, r.requiresBillingWrite FROM HubspotRole r" );
+		List<Object[]> roleResult = roleQuery.getResultList();
+		System.out.println( "HubSpot Roles" );
+		print( roleResult );
+
+		// CRM owners: users that own contact records (direct contact data access)
+		TypedQuery<Object[]> ownerQuery = session.createQuery(
+				"SELECT o.id, o.email, o.firstName, o.lastName FROM HubspotOwner o WHERE o.archived = false" );
+		List<Object[]> ownerResult = ownerQuery.getResultList();
+		System.out.println( "HubSpot Active CRM Owners (contact access)" );
+		print( ownerResult );
+
+		// GDPR: verify data is hosted in the EU (eu1 region)
+		TypedQuery<Object[]> gdprQuery = session.createQuery(
+				"SELECT a.portalId, a.dataHostingLocation, a.accountType FROM HubspotAccountInfo a" );
+		List<Object[]> gdprResult = gdprQuery.getResultList();
+		System.out.println( "HubSpot Account Info (GDPR data-hosting check)" );
+		print( gdprResult );
+
+		// GDPR risk: portals NOT hosted in the EU
+		TypedQuery<Object[]> gdprRiskQuery = session.createQuery(
+				"SELECT a.portalId, a.dataHostingLocation FROM HubspotAccountInfo a"
+						+ " WHERE a.dataHostingLocation <> 'eu1'" );
+		List<Object[]> gdprRiskResult = gdprRiskQuery.getResultList();
+		System.out.println( "HubSpot Portals NOT hosted in EU (GDPR risk)" );
+		print( gdprRiskResult );
+
+		// Teams: list all teams and their membership (separation of duties)
+		TypedQuery<Object[]> teamsQuery = session.createQuery(
+				"SELECT t.id, t.name, t.userIds, t.secondaryUserIds, t.parentTeamId FROM HubspotTeam t" );
+		List<Object[]> teamsResult = teamsQuery.getResultList();
+		System.out.println( "HubSpot Teams" );
+		print( teamsResult );
+
+		// Teams: top-level teams only (no parent)
+		TypedQuery<Object[]> topTeamsQuery = session.createQuery(
+				"SELECT t.id, t.name FROM HubspotTeam t WHERE t.parentTeamId IS NULL" );
+		List<Object[]> topTeamsResult = topTeamsQuery.getResultList();
+		System.out.println( "HubSpot Top-Level Teams" );
+		print( topTeamsResult );
+
+		// Subscription definitions: GDPR consent catalogue
+		TypedQuery<Object[]> subsQuery = session.createQuery(
+				"SELECT s.id, s.name, s.active, s.defaultOptIn, s.internal, s.purpose"
+						+ " FROM HubspotSubscriptionDefinition s" );
+		List<Object[]> subsResult = subsQuery.getResultList();
+		System.out.println( "HubSpot Subscription Definitions (consent catalogue)" );
+		print( subsResult );
+
+		// Subscription definitions: default-opt-in marketing types (GDPR implicit consent risk)
+		TypedQuery<Object[]> defaultSubsQuery = session.createQuery(
+				"SELECT s.id, s.name, s.purpose FROM HubspotSubscriptionDefinition s"
+						+ " WHERE s.defaultOptIn = true AND s.purpose = 'MARKETING'" );
+		List<Object[]> defaultSubsResult = defaultSubsQuery.getResultList();
+		System.out.println( "HubSpot Default-Opt-In Marketing Subscriptions (GDPR risk)" );
+		print( defaultSubsResult );
+
+		// Subscription definitions: hidden internal-only types
+		TypedQuery<Object[]> internalSubsQuery = session.createQuery(
+				"SELECT s.id, s.name FROM HubspotSubscriptionDefinition s WHERE s.internal = true" );
+		List<Object[]> internalSubsResult = internalSubsQuery.getResultList();
+		System.out.println( "HubSpot Internal (hidden) Subscription Types" );
+		print( internalSubsResult );
+
+		// Subscription definitions: inactive types that should be cleaned up
+		TypedQuery<Object[]> inactiveSubsQuery = session.createQuery(
+				"SELECT s.id, s.name FROM HubspotSubscriptionDefinition s WHERE s.active = false" );
+		List<Object[]> inactiveSubsResult = inactiveSubsQuery.getResultList();
+		System.out.println( "HubSpot Inactive Subscription Types (cleanup candidates)" );
+		print( inactiveSubsResult );
+
+		// Audit logs: recent activity for monitoring (requires Enterprise)
+		TypedQuery<Object[]> auditQuery = session.createQuery(
+				"SELECT l.id, l.category, l.subCategory, l.targetObjectType, l.occurredAt, l.actingUser.userEmail"
+						+ " FROM HubspotAuditLog l" );
+		List<Object[]> auditResult = auditQuery.getResultList();
+		System.out.println( "HubSpot Audit Logs" );
+		print( auditResult );
+
+		// Audit logs: contact data deletions (GDPR erasure monitoring)
+		TypedQuery<Object[]> erasureQuery = session.createQuery(
+				"SELECT l.targetObjectId, l.actingUser.userEmail, l.occurredAt FROM HubspotAuditLog l"
+						+ " WHERE l.targetObjectType = 'CONTACT' AND l.subCategory = 'DELETED'" );
+		List<Object[]> erasureResult = erasureQuery.getResultList();
+		System.out.println( "HubSpot Contact Deletions (GDPR erasure activity)" );
+		print( erasureResult );
+
+		// Login activity: logins without MFA (2FA compliance check, requires Enterprise)
+		TypedQuery<Object[]> noMfaQuery = session.createQuery(
+				"SELECT l.userEmail, l.loginMethod, l.ipAddress, l.countryCode, l.occurredAt"
+						+ " FROM HubspotLoginActivity l"
+						+ " WHERE l.mfaUsed = false AND l.loginStatus = 'SUCCESS'" );
+		List<Object[]> noMfaResult = noMfaQuery.getResultList();
+		System.out.println( "HubSpot Logins Without MFA (2FA compliance risk)" );
+		print( noMfaResult );
+
+		// Login activity: failed login attempts
+		TypedQuery<Object[]> failedLoginQuery = session.createQuery(
+				"SELECT l.userEmail, l.ipAddress, l.countryCode, l.occurredAt FROM HubspotLoginActivity l"
+						+ " WHERE l.loginStatus = 'FAILURE'" );
+		List<Object[]> failedLoginResult = failedLoginQuery.getResultList();
+		System.out.println( "HubSpot Failed Login Attempts" );
+		print( failedLoginResult );
+
+		// Security activity: high-severity security config changes (requires Enterprise)
+		TypedQuery<Object[]> securityQuery = session.createQuery(
+				"SELECT s.eventType, s.actingUserEmail, s.affectedUserId, s.severity, s.occurredAt"
+						+ " FROM HubspotSecurityActivity s"
+						+ " WHERE s.severity = 'HIGH' OR s.severity = 'CRITICAL'" );
+		List<Object[]> securityResult = securityQuery.getResultList();
+		System.out.println( "HubSpot High-Severity Security Events" );
+		print( securityResult );
+
+		// Security activity: MFA disable events (2FA governance)
+		TypedQuery<Object[]> mfaDisabledQuery = session.createQuery(
+				"SELECT s.actingUserEmail, s.affectedUserId, s.occurredAt FROM HubspotSecurityActivity s"
+						+ " WHERE s.eventType = 'MFA_DISABLED'" );
+		List<Object[]> mfaDisabledResult = mfaDisabledQuery.getResultList();
+		System.out.println( "HubSpot MFA_DISABLED Events (2FA governance)" );
+		print( mfaDisabledResult );
+	}
+
+	private static HubspotClient createHubspotClient() {
+		return new HubspotClient( HUBSPOT_ACCESS_TOKEN );
 	}
 
 	private static com.datadog.api.client.ApiClient createDatadogApiClient() {
