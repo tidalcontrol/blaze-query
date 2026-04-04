@@ -242,6 +242,17 @@ import com.blazebit.query.connector.scaleway.ScalewaySecretVersion;
 import com.blazebit.query.connector.scaleway.ScalewaySecurityGroup;
 import com.blazebit.query.connector.scaleway.ScalewaySecurityGroupRule;
 import com.blazebit.query.connector.scaleway.ScalewayVpc;
+import com.blazebit.query.connector.scaleway.ScalewayObjectStorageBucket;
+import com.blazebit.query.connector.scaleway.ScalewayDatabase;
+import com.blazebit.query.connector.scaleway.ScalewayContainer;
+import com.blazebit.query.connector.scaleway.ScalewayFunction;
+import com.blazebit.query.connector.scaleway.ScalewayVolume;
+import com.blazebit.query.connector.scaleway.ScalewaySnapshot;
+import com.blazebit.query.connector.scaleway.ScalewayLoadBalancer;
+import com.blazebit.query.connector.scaleway.ScalewayLoadBalancerFrontend;
+import com.blazebit.query.connector.scaleway.ScalewayFlexibleIp;
+import com.blazebit.query.connector.scaleway.ScalewayCockpitAlertManager;
+import com.blazebit.query.connector.scaleway.ScalewayTemDomain;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.microsoft.graph.beta.serviceclient.GraphServiceClient;
 import jakarta.persistence.EntityManager;
@@ -629,6 +640,17 @@ public class Main {
 			// Scaleway — VPC
 			queryContextBuilder.registerSchemaObjectAlias( ScalewayVpc.class, "ScalewayVpc" );
 			queryContextBuilder.registerSchemaObjectAlias( ScalewayPrivateNetwork.class, "ScalewayPrivateNetwork" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayObjectStorageBucket.class, "ScalewayObjectStorageBucket" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayDatabase.class, "ScalewayDatabase" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayContainer.class, "ScalewayContainer" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayFunction.class, "ScalewayFunction" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayVolume.class, "ScalewayVolume" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewaySnapshot.class, "ScalewaySnapshot" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayLoadBalancer.class, "ScalewayLoadBalancer" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayLoadBalancerFrontend.class, "ScalewayLoadBalancerFrontend" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayFlexibleIp.class, "ScalewayFlexibleIp" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayCockpitAlertManager.class, "ScalewayCockpitAlertManager" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayTemDomain.class, "ScalewayTemDomain" );
 
 			// Observatory
 			queryContextBuilder.registerSchemaObject(
@@ -2632,6 +2654,118 @@ public class Main {
 		List<Object[]> pnResult = pnQuery.getResultList();
 		System.out.println( "Scaleway Private Networks" );
 		print( pnResult );
+
+		// Object Storage: list all buckets
+		TypedQuery<Object[]> bucketsQuery = session.createQuery(
+				"SELECT b.name, b.region, b.objectCount, b.totalSize FROM ScalewayObjectStorageBucket b" );
+		List<Object[]> bucketsResult = bucketsQuery.getResultList();
+		System.out.println( "Scaleway Object Storage Buckets" );
+		print( bucketsResult );
+
+		// Object Storage: empty buckets (unused resources)
+		TypedQuery<Object[]> emptyBucketsQuery = session.createQuery(
+				"SELECT b.name, b.region FROM ScalewayObjectStorageBucket b WHERE b.objectCount = 0" );
+		List<Object[]> emptyBucketsResult = emptyBucketsQuery.getResultList();
+		System.out.println( "Scaleway Object Storage Buckets - empty (unused)" );
+		print( emptyBucketsResult );
+
+		// Managed Databases: list all
+		TypedQuery<Object[]> dbQuery = session.createQuery(
+				"SELECT d.id, d.name, d.engine, d.haEnabled, d.publiclyAccessible, d.backupRetentionDays, d.region FROM ScalewayDatabase d" );
+		List<Object[]> dbResult = dbQuery.getResultList();
+		System.out.println( "Scaleway Managed Databases" );
+		print( dbResult );
+
+		// Managed Databases: publicly accessible endpoints
+		TypedQuery<Object[]> publicDbQuery = session.createQuery(
+				"SELECT d.id, d.name, d.endpointIp FROM ScalewayDatabase d WHERE d.publiclyAccessible = true" );
+		List<Object[]> publicDbResult = publicDbQuery.getResultList();
+		System.out.println( "Scaleway Managed Databases - publicly accessible" );
+		print( publicDbResult );
+
+		// Managed Databases: short backup retention (< 7 days)
+		TypedQuery<Object[]> shortRetentionDbQuery = session.createQuery(
+				"SELECT d.id, d.name, d.backupRetentionDays FROM ScalewayDatabase d WHERE d.backupRetentionDays < 7" );
+		List<Object[]> shortRetentionDbResult = shortRetentionDbQuery.getResultList();
+		System.out.println( "Scaleway Managed Databases - backup retention < 7 days" );
+		print( shortRetentionDbResult );
+
+		// Serverless Containers: list all
+		TypedQuery<Object[]> containersQuery = session.createQuery(
+				"SELECT c.id, c.name, c.privacy, c.hasEnvVars, c.region FROM ScalewayContainer c" );
+		List<Object[]> containersResult = containersQuery.getResultList();
+		System.out.println( "Scaleway Serverless Containers" );
+		print( containersResult );
+
+		// Serverless Containers: public containers
+		TypedQuery<Object[]> publicContainersQuery = session.createQuery(
+				"SELECT c.id, c.name FROM ScalewayContainer c WHERE c.privacy = 'public'" );
+		List<Object[]> publicContainersResult = publicContainersQuery.getResultList();
+		System.out.println( "Scaleway Serverless Containers - public" );
+		print( publicContainersResult );
+
+		// Serverless Functions: list all
+		TypedQuery<Object[]> functionsQuery = session.createQuery(
+				"SELECT f.id, f.name, f.runtime, f.privacy, f.hasEnvVars, f.region FROM ScalewayFunction f" );
+		List<Object[]> functionsResult = functionsQuery.getResultList();
+		System.out.println( "Scaleway Serverless Functions" );
+		print( functionsResult );
+
+		// Serverless Functions: public functions
+		TypedQuery<Object[]> publicFunctionsQuery = session.createQuery(
+				"SELECT f.id, f.name, f.runtime FROM ScalewayFunction f WHERE f.privacy = 'public'" );
+		List<Object[]> publicFunctionsResult = publicFunctionsQuery.getResultList();
+		System.out.println( "Scaleway Serverless Functions - public" );
+		print( publicFunctionsResult );
+
+		// Block Storage Volumes: unattached volumes
+		TypedQuery<Object[]> unattachedVolumesQuery = session.createQuery(
+				"SELECT v.id, v.name, v.volumeType, v.size, v.zone FROM ScalewayVolume v WHERE v.serverId IS NULL" );
+		List<Object[]> unattachedVolumesResult = unattachedVolumesQuery.getResultList();
+		System.out.println( "Scaleway Volumes - unattached (orphaned)" );
+		print( unattachedVolumesResult );
+
+		// Snapshots: old snapshots (potential cleanup candidates)
+		TypedQuery<Object[]> snapshotsQuery = session.createQuery(
+				"SELECT s.id, s.name, s.state, s.size, s.zone, s.createdAt FROM ScalewaySnapshot s" );
+		List<Object[]> snapshotsResult = snapshotsQuery.getResultList();
+		System.out.println( "Scaleway Snapshots" );
+		print( snapshotsResult );
+
+		// Load Balancers: list all
+		TypedQuery<Object[]> lbsQuery = session.createQuery(
+				"SELECT l.id, l.name, l.status, l.zone FROM ScalewayLoadBalancer l" );
+		List<Object[]> lbsResult = lbsQuery.getResultList();
+		System.out.println( "Scaleway Load Balancers" );
+		print( lbsResult );
+
+		// LB Frontends: non-TLS HTTP frontends
+		TypedQuery<Object[]> httpFrontendsQuery = session.createQuery(
+				"SELECT f.id, f.name, f.lbId, f.protocol, f.inboundPort FROM ScalewayLoadBalancerFrontend f WHERE f.tlsEnabled = false AND f.protocol = 'http'" );
+		List<Object[]> httpFrontendsResult = httpFrontendsQuery.getResultList();
+		System.out.println( "Scaleway LB Frontends - non-TLS HTTP (unencrypted traffic)" );
+		print( httpFrontendsResult );
+
+		// Flexible IPs: unattached (orphaned, costing money)
+		TypedQuery<Object[]> detachedIpsQuery = session.createQuery(
+				"SELECT f.id, f.ipAddress, f.zone FROM ScalewayFlexibleIp f WHERE f.serverId IS NULL" );
+		List<Object[]> detachedIpsResult = detachedIpsQuery.getResultList();
+		System.out.println( "Scaleway Flexible IPs - unattached (orphaned)" );
+		print( detachedIpsResult );
+
+		// Cockpit Alert Managers: regions with alerts disabled or no contact points
+		TypedQuery<Object[]> alertMgrQuery = session.createQuery(
+				"SELECT a.region, a.managedAlertsEnabled, a.contactPointCount FROM ScalewayCockpitAlertManager a WHERE a.managedAlertsEnabled = false OR a.contactPointCount = 0" );
+		List<Object[]> alertMgrResult = alertMgrQuery.getResultList();
+		System.out.println( "Scaleway Cockpit Alert Managers - alerts disabled or no contacts" );
+		print( alertMgrResult );
+
+		// TEM Domains: missing SPF, DKIM, or MX configuration
+		TypedQuery<Object[]> temDomainsQuery = session.createQuery(
+				"SELECT d.id, d.name, d.spfConfigured, d.dkimConfigured, d.mxConfigured FROM ScalewayTemDomain d WHERE d.spfConfigured = false OR d.dkimConfigured = false OR d.mxConfigured = false" );
+		List<Object[]> temDomainsResult = temDomainsQuery.getResultList();
+		System.out.println( "Scaleway TEM Domains - missing SPF/DKIM/MX configuration" );
+		print( temDomainsResult );
 	}
 
 }

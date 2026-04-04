@@ -6,6 +6,7 @@ package com.blazebit.query.connector.scaleway;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.IOException;
@@ -253,6 +254,175 @@ public class ScalewayClient implements Serializable {
 		List<JsonNode> result = new ArrayList<>();
 		for ( String region : regions() ) {
 			result.addAll( fetchRegionPaged( "/vpc/v2/regions", region, "/private-networks", "private_networks" ) );
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// Object Storage API (region-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists all Object Storage buckets across all derived regions with full pagination. */
+	public List<JsonNode> listObjectStorageBuckets() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String region : regions() ) {
+			result.addAll( fetchRegionPaged( "/object-storage/v1/regions", region, "/buckets", "buckets" ) );
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// RDB (Managed Databases) API (region-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists all managed database instances across all derived regions with full pagination. */
+	public List<JsonNode> listDatabases() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String region : regions() ) {
+			result.addAll( fetchRegionPaged( "/rdb/v1/regions", region, "/instances", "instances" ) );
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// Serverless Containers API (region-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists all serverless containers across all derived regions with full pagination. */
+	public List<JsonNode> listContainers() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String region : regions() ) {
+			result.addAll( fetchRegionPaged( "/containers/v1beta1/regions", region, "/containers", "containers" ) );
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// Serverless Functions API (region-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists all serverless functions across all derived regions with full pagination. */
+	public List<JsonNode> listFunctions() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String region : regions() ) {
+			result.addAll( fetchRegionPaged( "/functions/v1beta1/regions", region, "/functions", "functions" ) );
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// Block Storage Volumes API (zone-based, dict response)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Lists all block storage volumes across all configured zones.
+	 * The API returns volumes as a dict keyed by volume ID; zone is injected as "_zone".
+	 */
+	public List<JsonNode> listVolumes() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String zone : zones ) {
+			String url = INSTANCE_BASE_URL + "/" + zone + "/volumes?per_page=" + PAGE_SIZE;
+			JsonNode response = get( url );
+			JsonNode volumesNode = response.path( "volumes" );
+			if ( volumesNode.isObject() ) {
+				volumesNode.fields().forEachRemaining( entry -> {
+					JsonNode volumeNode = entry.getValue();
+					if ( volumeNode instanceof ObjectNode ) {
+						( (ObjectNode) volumeNode ).put( "_zone", zone );
+					}
+					result.add( volumeNode );
+				} );
+			}
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// Snapshots API (zone-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists all snapshots across all configured zones; zone is injected as "_zone". */
+	public List<JsonNode> listSnapshots() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String zone : zones ) {
+			List<JsonNode> zoneSnapshots = fetchZonePaged( INSTANCE_BASE_URL, zone, "/snapshots", "snapshots" );
+			for ( JsonNode node : zoneSnapshots ) {
+				if ( node instanceof ObjectNode ) {
+					( (ObjectNode) node ).put( "_zone", zone );
+				}
+				result.add( node );
+			}
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// Load Balancer API (zone-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists all load balancers across all configured zones with full pagination. */
+	public List<JsonNode> listLoadBalancers() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String zone : zones ) {
+			result.addAll( fetchZonePaged( BASE_URL + "/lb/v1/zones", zone, "/lbs", "lbs" ) );
+		}
+		return result;
+	}
+
+	/** Lists all frontends for a given load balancer. */
+	public List<JsonNode> listLoadBalancerFrontends(String lbId, String zone)
+			throws IOException, InterruptedException {
+		String url = BASE_URL + "/lb/v1/zones/" + zone + "/lbs/" + lbId + "/frontends";
+		JsonNode response = get( url );
+		List<JsonNode> result = new ArrayList<>();
+		JsonNode frontends = response.path( "frontends" );
+		if ( frontends.isArray() ) {
+			for ( JsonNode f : frontends ) {
+				result.add( f );
+			}
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// Flexible IP API (zone-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists all flexible IPs across all configured zones with full pagination. */
+	public List<JsonNode> listFlexibleIps() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String zone : zones ) {
+			result.addAll( fetchZonePaged( BASE_URL + "/flexible-ip/v1alpha1/zones", zone, "/fips", "flexible_ips" ) );
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// Cockpit API (region-based)
+	// -------------------------------------------------------------------------
+
+	/** Gets the Cockpit alert manager configuration for the given region. */
+	public JsonNode getCockpitAlertManager(String region) throws IOException, InterruptedException {
+		String url = BASE_URL + "/cockpit/v1/regions/" + region + "/alertmanager";
+		return get( url );
+	}
+
+	/** Returns the number of contact points configured for the Cockpit in the given region. */
+	public int getCockpitContactPointCount(String region) throws IOException, InterruptedException {
+		String url = BASE_URL + "/cockpit/v1/regions/" + region + "/contact-points?page_size=1";
+		JsonNode response = get( url );
+		return response.path( "total_count" ).asInt( 0 );
+	}
+
+	// -------------------------------------------------------------------------
+	// Transactional Email (TEM) API (region-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists all transactional email domains across all derived regions with full pagination. */
+	public List<JsonNode> listTemDomains() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String region : regions() ) {
+			result.addAll( fetchRegionPaged( "/transactional-email/v1alpha1/regions", region, "/domains", "domains" ) );
 		}
 		return result;
 	}

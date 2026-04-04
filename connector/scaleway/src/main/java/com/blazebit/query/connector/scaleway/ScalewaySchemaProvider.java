@@ -49,7 +49,26 @@ public final class ScalewaySchemaProvider implements QuerySchemaProvider {
 				ScalewayRegistryImageDataFetcher.INSTANCE,
 				// VPC — network segmentation and private network usage
 				ScalewayVpcDataFetcher.INSTANCE,
-				ScalewayPrivateNetworkDataFetcher.INSTANCE
+				ScalewayPrivateNetworkDataFetcher.INSTANCE,
+				// Object Storage — public bucket exposure and data hygiene
+				ScalewayObjectStorageBucketDataFetcher.INSTANCE,
+				// Managed Databases — public endpoints, HA, backup retention
+				ScalewayDatabaseDataFetcher.INSTANCE,
+				// Serverless — public endpoints, env-var secret leakage
+				ScalewayContainerDataFetcher.INSTANCE,
+				ScalewayFunctionDataFetcher.INSTANCE,
+				// Block Storage — orphaned volumes and snapshots
+				ScalewayVolumeDataFetcher.INSTANCE,
+				ScalewaySnapshotDataFetcher.INSTANCE,
+				// Load Balancers — TLS enforcement and frontend security
+				ScalewayLoadBalancerDataFetcher.INSTANCE,
+				ScalewayLoadBalancerFrontendDataFetcher.INSTANCE,
+				// Flexible IPs — unattached IPs reducing attack surface
+				ScalewayFlexibleIpDataFetcher.INSTANCE,
+				// Cockpit — observability and alerting coverage
+				ScalewayCockpitAlertManagerDataFetcher.INSTANCE,
+				// Transactional Email — SPF/DKIM/MX domain hygiene
+				ScalewayTemDomainDataFetcher.INSTANCE
 		);
 	}
 }
