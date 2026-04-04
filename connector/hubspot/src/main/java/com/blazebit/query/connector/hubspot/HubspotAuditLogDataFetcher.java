@@ -27,7 +27,7 @@ import java.util.List;
  * <p>Requires an Enterprise HubSpot subscription and the
  * {@code account-info.security.read} OAuth scope.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class HubspotAuditLogDataFetcher implements DataFetcher<HubspotAuditLog>, Serializable {

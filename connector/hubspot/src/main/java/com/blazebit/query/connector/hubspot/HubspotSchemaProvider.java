@@ -27,7 +27,7 @@ import java.util.Set;
  *   <tr><td>{@link HubspotSecurityActivityDataFetcher}</td><td>Security config changes (MFA_ENABLED, SSO_CONFIGURED, …)</td></tr>
  * </table>
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public final class HubspotSchemaProvider implements QuerySchemaProvider {

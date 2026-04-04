@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * <p>Requires an Enterprise HubSpot subscription and the
  * {@code account-info.security.read} scope.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 @JsonIgnoreProperties( ignoreUnknown = true )

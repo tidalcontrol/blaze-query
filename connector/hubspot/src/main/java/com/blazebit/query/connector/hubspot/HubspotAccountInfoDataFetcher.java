@@ -21,7 +21,7 @@ import java.util.List;
  * field indicates whether data is stored in the EU ({@code eu1}) or North America ({@code na1}),
  * which is a key indicator for GDPR data-residency compliance.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class HubspotAccountInfoDataFetcher implements DataFetcher<HubspotAccountInfo>, Serializable {

@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * <p>Join with {@link HubspotUser#roleIds()} to determine which permissions each
  * user holds, supporting the "users that can access contact information" query.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 @JsonIgnoreProperties( ignoreUnknown = true )

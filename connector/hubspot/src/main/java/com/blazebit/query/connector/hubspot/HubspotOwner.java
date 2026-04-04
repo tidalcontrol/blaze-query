@@ -18,7 +18,7 @@ import java.time.OffsetDateTime;
  * <p>Cross-reference {@link HubspotOwner#email()} with {@link HubspotUser#email()} to
  * enrich owner records with portal-user properties such as role assignments or status.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 @JsonIgnoreProperties( ignoreUnknown = true )

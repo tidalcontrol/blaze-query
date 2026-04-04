@@ -12,7 +12,7 @@ import java.lang.reflect.Member;
  * Convention context for HubSpot record types.
  * Includes all record component accessors recursively.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class HubspotConventionContext implements ConventionContext {

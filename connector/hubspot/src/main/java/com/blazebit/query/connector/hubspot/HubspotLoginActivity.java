@@ -30,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  *       {@code WHERE countryCode NOT IN ('US', 'DE', ...)}</li>
  * </ul>
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 @JsonIgnoreProperties( ignoreUnknown = true )

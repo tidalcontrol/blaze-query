@@ -21,7 +21,7 @@ import java.util.List;
  * <p>CRM owners are the users that hold ownership of contacts, deals, and other CRM
  * records. Querying this table identifies everyone with effective access to contact data.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class HubspotOwnerDataFetcher implements DataFetcher<HubspotOwner>, Serializable {

@@ -26,7 +26,7 @@ import java.util.List;
  * portal's data-hosting location and account type, and enforce the policy at the
  * account level inside the HubSpot Security settings UI.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 @JsonIgnoreProperties( ignoreUnknown = true )

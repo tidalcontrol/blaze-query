@@ -17,7 +17,7 @@ import java.time.Duration;
  * queryContextBuilder.setProperty(HubspotConnectorConfig.HUBSPOT_CLIENT.getPropertyName(), client);
  * }</pre>
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public final class HubspotConnectorConfig {

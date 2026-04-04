@@ -23,7 +23,7 @@ import java.util.List;
  * Simple HTTP client for the HubSpot REST API. Authenticate with a
  * <a href="https://developers.hubspot.com/docs/api/private-apps">Private App access token</a>.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public final class HubspotClient {

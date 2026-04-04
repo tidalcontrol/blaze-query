@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *       contacts; verify their use is intentional</li>
  * </ul>
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 @JsonIgnoreProperties( ignoreUnknown = true )

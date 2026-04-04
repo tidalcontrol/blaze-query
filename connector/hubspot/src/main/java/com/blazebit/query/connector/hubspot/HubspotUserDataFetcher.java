@@ -24,7 +24,7 @@ import java.util.List;
  *   <li>Auditing super-admin accounts ({@code superAdmin = true})</li>
  * </ul>
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class HubspotUserDataFetcher implements DataFetcher<HubspotUser>, Serializable {

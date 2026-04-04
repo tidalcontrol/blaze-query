@@ -20,7 +20,7 @@ import java.util.List;
  * <p>Roles define which CRM permissions users have. Joining roles with users reveals
  * who has read/write access to contacts, deals, and other CRM objects.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class HubspotRoleDataFetcher implements DataFetcher<HubspotRole>, Serializable {

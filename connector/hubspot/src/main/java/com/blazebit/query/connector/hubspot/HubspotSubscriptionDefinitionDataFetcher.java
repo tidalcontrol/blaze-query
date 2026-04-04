@@ -22,7 +22,7 @@ import java.util.List;
  * Use this to verify that GDPR-compliant consent categories are properly
  * configured before auditing per-contact consent status.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class HubspotSubscriptionDefinitionDataFetcher implements DataFetcher<HubspotSubscriptionDefinition>, Serializable {

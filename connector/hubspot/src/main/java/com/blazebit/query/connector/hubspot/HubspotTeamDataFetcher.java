@@ -21,7 +21,7 @@ import java.util.List;
  * data to audit separation of duties, identify orphaned users, and map record
  * visibility to organisational boundaries.
  *
- * @author Blazebit
+ * @author Martijn Sprengers
  * @since 2.4.4
  */
 public class HubspotTeamDataFetcher implements DataFetcher<HubspotTeam>, Serializable {
