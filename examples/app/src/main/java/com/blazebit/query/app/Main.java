@@ -193,6 +193,11 @@ import com.blazebit.query.connector.datadog.DatadogSecurityMonitoringRule;
 import com.blazebit.query.connector.datadog.DatadogSecuritySignal;
 import com.blazebit.query.connector.datadog.DatadogSyntheticsTest;
 import com.blazebit.query.connector.datadog.DatadogUser;
+import com.blazebit.query.connector.vercel.AccessGroup;
+import com.blazebit.query.connector.vercel.AuthToken;
+import com.blazebit.query.connector.vercel.Team;
+import com.blazebit.query.connector.vercel.TeamMember;
+import com.blazebit.query.connector.vercel.Webhook;
 import com.blazebit.query.connector.observatory.ObservatoryClient;
 import com.blazebit.query.connector.view.EntityViewConnectorConfig;
 import com.blazebit.query.spi.DataFetchContext;
@@ -289,6 +294,9 @@ public class Main {
 	private static final String DATADOG_APP_KEY = "";
 	private static final String DATADOG_SITE = "datadoghq.eu";
 
+	private static final String VERCEL_TOKEN = "";
+	private static final String VERCEL_TEAM_ID = "";
+
 	private Main() {
 	}
 
@@ -322,6 +330,7 @@ public class Main {
 			queryContextBuilder.setProperty( EntityViewConnectorConfig.ENTITY_VIEW_MANAGER.getPropertyName(), evm );
 //			queryContextBuilder.setProperty( ObservatoryConnectorConfig.OBSERVATORY_CLIENT.getPropertyName(), createObservatoryClient());
 			queryContextBuilder.setProperty( DatadogConnectorConfig.DATADOG_API_CLIENT.getPropertyName(), createDatadogApiClient());
+//			queryContextBuilder.setProperty( VercelConnectorConfig.API_CLIENT.getPropertyName(), new VercelApiClient( VERCEL_TOKEN, VERCEL_TEAM_ID ) );
 //			queryContextBuilder.setProperty( GitlabConnectorConfig.GITLAB_API.getPropertyName(), createGitlabApi());
 //			queryContextBuilder.setProperty( GitlabGraphQlConnectorConfig.GITLAB_GRAPHQL_CLIENT.getPropertyName(), createGitlabGraphQLClient());
 //            queryContextBuilder.setProperty(KandjiConnectorConfig.API_CLIENT.getPropertyName(), createKandjiApiClient());
@@ -577,6 +586,14 @@ public class Main {
 			queryContextBuilder.registerSchemaObjectAlias( DatadogMonitorDowntime.class, "DatadogMonitorDowntime" );
 			queryContextBuilder.registerSchemaObjectAlias( DatadogPermission.class, "DatadogPermission" );
 
+			// Vercel
+			queryContextBuilder.registerSchemaObjectAlias( AuthToken.class, "VercelAuthToken" );
+			queryContextBuilder.registerSchemaObjectAlias( Team.class, "VercelTeam" );
+			queryContextBuilder.registerSchemaObjectAlias( TeamMember.class, "VercelTeamMember" );
+			queryContextBuilder.registerSchemaObjectAlias( AccessGroup.class, "VercelAccessGroup" );
+			queryContextBuilder.registerSchemaObjectAlias( Webhook.class, "VercelWebhook" );
+			queryContextBuilder.registerSchemaObjectAlias( com.blazebit.query.connector.vercel.Project.class, "VercelProject" );
+
 			// Observatory
 			queryContextBuilder.registerSchemaObject(
 					com.blazebit.query.connector.observatory.ObservatoryScan.class,
@@ -597,6 +614,7 @@ public class Main {
 //					testGcp( session );
 //					testGoogleWorkspace( session );
 					testDatadog( session );
+//					testVercel( session );
 //					testAws( session );
 //					testGitlab( session );
 //					testGitHub( session );
@@ -1997,6 +2015,118 @@ public class Main {
 		List<Object[]> permissionRestrictedResult = permissionRestrictedQuery.getResultList();
 		System.out.println( "Datadog Permissions - restricted" );
 		print( permissionRestrictedResult );
+	}
+
+	private static void testVercel(QuerySession session) {
+		// Auth Tokens: all tokens with type and last-active timestamp
+		TypedQuery<Object[]> tokenQuery = session.createQuery(
+				"SELECT t.id, t.name, t.type, t.origin, t.activeAt, t.expiresAt FROM VercelAuthToken t" );
+		List<Object[]> tokenResult = tokenQuery.getResultList();
+		System.out.println( "Vercel Auth Tokens" );
+		print( tokenResult );
+
+		// Auth Tokens: tokens never used (activeAt is null)
+		TypedQuery<Object[]> unusedTokenQuery = session.createQuery(
+				"SELECT t.id, t.name, t.origin, t.createdAt FROM VercelAuthToken t WHERE t.activeAt IS NULL" );
+		List<Object[]> unusedTokenResult = unusedTokenQuery.getResultList();
+		System.out.println( "Vercel Auth Tokens - never used" );
+		print( unusedTokenResult );
+
+		// Teams: security settings overview
+		TypedQuery<Object[]> teamQuery = session.createQuery(
+				"""
+				SELECT t.id, t.slug, t.name,
+					t.saml.enforced,
+					t.sensitiveEnvironmentVariablePolicy,
+					t.hideIpAddresses
+				FROM VercelTeam t
+				""" );
+		List<Object[]> teamResult = teamQuery.getResultList();
+		System.out.println( "Vercel Teams" );
+		print( teamResult );
+
+		// Teams: SAML not enforced — compliance risk
+		TypedQuery<Object[]> noSamlQuery = session.createQuery(
+				"SELECT t.id, t.slug FROM VercelTeam t WHERE t.saml.enforced = false OR t.saml IS NULL" );
+		List<Object[]> noSamlResult = noSamlQuery.getResultList();
+		System.out.println( "Vercel Teams - SAML not enforced" );
+		print( noSamlResult );
+
+		// Team Members: full roster with role and join origin
+		TypedQuery<Object[]> memberQuery = session.createQuery(
+				"SELECT m.uid, m.email, m.role, m.confirmed, m.teamId, m.joinedFrom.origin FROM VercelTeamMember m" );
+		List<Object[]> memberResult = memberQuery.getResultList();
+		System.out.println( "Vercel Team Members" );
+		print( memberResult );
+
+		// Team Members: unconfirmed invites (potential stale access)
+		TypedQuery<Object[]> unconfirmedQuery = session.createQuery(
+				"SELECT m.uid, m.email, m.teamId, m.createdAt FROM VercelTeamMember m WHERE m.confirmed = false" );
+		List<Object[]> unconfirmedResult = unconfirmedQuery.getResultList();
+		System.out.println( "Vercel Team Members - unconfirmed" );
+		print( unconfirmedResult );
+
+		// Team Members: owners
+		TypedQuery<Object[]> ownerQuery = session.createQuery(
+				"SELECT m.uid, m.email, m.teamId FROM VercelTeamMember m WHERE m.role = 'OWNER'" );
+		List<Object[]> ownerResult = ownerQuery.getResultList();
+		System.out.println( "Vercel Team Members - owners" );
+		print( ownerResult );
+
+		// Access Groups: all groups with member/project counts and SCIM flag
+		TypedQuery<Object[]> groupQuery = session.createQuery(
+				"SELECT g.accessGroupId, g.name, g.membersCount, g.projectsCount, g.isDsyncManaged FROM VercelAccessGroup g" );
+		List<Object[]> groupResult = groupQuery.getResultList();
+		System.out.println( "Vercel Access Groups" );
+		print( groupResult );
+
+		// Access Groups: manually managed (not SCIM) — higher drift risk
+		TypedQuery<Object[]> manualGroupQuery = session.createQuery(
+				"SELECT g.accessGroupId, g.name FROM VercelAccessGroup g WHERE g.isDsyncManaged = false OR g.isDsyncManaged IS NULL" );
+		List<Object[]> manualGroupResult = manualGroupQuery.getResultList();
+		System.out.println( "Vercel Access Groups - not managed by directory sync" );
+		print( manualGroupResult );
+
+		// Webhooks: full list with event subscriptions
+		TypedQuery<Object[]> webhookQuery = session.createQuery(
+				"SELECT w.id, w.url, w.ownerId, w.createdAt FROM VercelWebhook w" );
+		List<Object[]> webhookResult = webhookQuery.getResultList();
+		System.out.println( "Vercel Webhooks" );
+		print( webhookResult );
+
+		// Webhooks: team-wide (no project scoping)
+		TypedQuery<Object[]> teamWebhookQuery = session.createQuery(
+				"SELECT w.id, w.url FROM VercelWebhook w WHERE CARDINALITY(w.projectIds) = 0" );
+		List<Object[]> teamWebhookResult = teamWebhookQuery.getResultList();
+		System.out.println( "Vercel Webhooks - team-wide" );
+		print( teamWebhookResult );
+
+		// Projects: deployment protection overview
+		TypedQuery<Object[]> projectQuery = session.createQuery(
+				"""
+				SELECT p.id, p.name, p.framework,
+					p.passwordProtection.deploymentType,
+					p.ssoProtection.deploymentType,
+					p.autoExposeSystemEnvs
+				FROM VercelProject p
+				""" );
+		List<Object[]> projectResult = projectQuery.getResultList();
+		System.out.println( "Vercel Projects" );
+		print( projectResult );
+
+		// Projects: no password or SSO protection (publicly reachable deployments)
+		TypedQuery<Object[]> unprotectedQuery = session.createQuery(
+				"SELECT p.id, p.name FROM VercelProject p WHERE p.passwordProtection IS NULL AND p.ssoProtection IS NULL" );
+		List<Object[]> unprotectedResult = unprotectedQuery.getResultList();
+		System.out.println( "Vercel Projects - no deployment protection" );
+		print( unprotectedResult );
+
+		// Projects: auto-exposing system environment variables
+		TypedQuery<Object[]> autoExposeQuery = session.createQuery(
+				"SELECT p.id, p.name FROM VercelProject p WHERE p.autoExposeSystemEnvs = true" );
+		List<Object[]> autoExposeResult = autoExposeQuery.getResultList();
+		System.out.println( "Vercel Projects - auto-exposing system env vars" );
+		print( autoExposeResult );
 	}
 
 	private static com.datadog.api.client.ApiClient createDatadogApiClient() {
