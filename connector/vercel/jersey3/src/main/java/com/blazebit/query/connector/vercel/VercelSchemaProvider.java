@@ -25,8 +25,17 @@ public final class VercelSchemaProvider implements QuerySchemaProvider {
 				TeamDataFetcher.INSTANCE,
 				TeamMemberDataFetcher.INSTANCE,
 				AccessGroupDataFetcher.INSTANCE,
+				AccessGroupMemberDataFetcher.INSTANCE,
 				WebhookDataFetcher.INSTANCE,
-				ProjectDataFetcher.INSTANCE
+				ProjectDataFetcher.INSTANCE,
+				ProjectMemberDataFetcher.INSTANCE,
+				EnvironmentVariableDataFetcher.INSTANCE,
+				LogDrainDataFetcher.INSTANCE,
+				FirewallConfigDataFetcher.INSTANCE,
+				IntegrationConfigurationDataFetcher.INSTANCE,
+				DeploymentDataFetcher.INSTANCE,
+				DomainDataFetcher.INSTANCE,
+				CertificateDataFetcher.INSTANCE
 		);
 	}
 }

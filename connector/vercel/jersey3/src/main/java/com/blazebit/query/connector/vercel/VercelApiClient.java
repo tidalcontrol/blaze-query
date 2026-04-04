@@ -163,6 +163,32 @@ public class VercelApiClient {
 	}
 
 	/**
+	 * Fetches a single JSON object from the given path with an extra query parameter.
+	 *
+	 * @param path        API path
+	 * @param paramName   additional query parameter name
+	 * @param paramValue  additional query parameter value
+	 * @param itemType    response class
+	 * @param <T>         response type
+	 * @return deserialized response
+	 * @throws IOException on HTTP or JSON errors
+	 */
+	public <T> T fetchSingleWithQuery(String path, String paramName, String paramValue, Class<T> itemType)
+			throws IOException {
+		try ( Client client = ClientBuilder.newClient() ) {
+			WebTarget target = client.target( BASE_URL ).path( path ).queryParam( paramName, paramValue );
+			if ( teamId != null ) {
+				target = target.queryParam( "teamId", teamId );
+			}
+			Response response = target.request()
+					.header( "Authorization", "Bearer " + accessToken )
+					.get();
+			checkResponse( path, response );
+			return OBJECT_MAPPER.readValue( response.readEntity( String.class ), itemType );
+		}
+	}
+
+	/**
 	 * Fetches a single JSON object from the given path.
 	 *
 	 * @param path     API path
