@@ -22,8 +22,8 @@ import java.util.List;
  * bot integrations ({@code type = "bot"}). A workspace-level integration token is
  * required to list all users; user-level tokens only return the token owner.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionUserDataFetcher implements DataFetcher<NotionUser>, Serializable {
 

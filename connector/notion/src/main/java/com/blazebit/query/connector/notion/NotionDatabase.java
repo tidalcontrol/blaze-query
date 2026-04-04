@@ -17,8 +17,8 @@ import com.fasterxml.jackson.databind.JsonNode;
  *   <li>Track archived or trashed databases for data-retention policy enforcement.</li>
  * </ul>
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionDatabase {
 

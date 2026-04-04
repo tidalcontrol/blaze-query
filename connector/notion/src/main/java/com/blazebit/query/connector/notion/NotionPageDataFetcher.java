@@ -21,8 +21,8 @@ import java.util.List;
  * <p>Only pages that the integration has been granted access to are returned.
  * Results include both active and archived pages.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionPageDataFetcher implements DataFetcher<NotionPage>, Serializable {
 

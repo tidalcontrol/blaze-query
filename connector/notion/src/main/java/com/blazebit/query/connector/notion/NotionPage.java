@@ -19,8 +19,8 @@ import com.fasterxml.jackson.databind.JsonNode;
  *   <li>Detect orphaned or top-level workspace pages that may be broadly accessible.</li>
  * </ul>
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionPage {
 

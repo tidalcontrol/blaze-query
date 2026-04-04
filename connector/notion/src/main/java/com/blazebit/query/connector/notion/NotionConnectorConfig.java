@@ -9,8 +9,8 @@ import com.blazebit.query.spi.DataFetcherConfig;
 /**
  * The configuration properties for the Notion connector.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public final class NotionConnectorConfig {
 

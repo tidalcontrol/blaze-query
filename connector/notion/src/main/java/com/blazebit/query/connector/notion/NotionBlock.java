@@ -27,8 +27,8 @@ import com.fasterxml.jackson.databind.JsonNode;
  * accessible page to retrieve top-level blocks. In large workspaces this can be expensive;
  * consider filtering to specific pages using SQL {@code WHERE pageId = ?} predicates.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionBlock {
 

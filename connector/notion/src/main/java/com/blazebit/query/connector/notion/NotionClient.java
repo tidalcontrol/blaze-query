@@ -40,8 +40,8 @@ import java.util.List;
  *   <li>{@link #appendBlocks(String, List)} — append block content to a page or block</li>
  * </ul>
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionClient {
 

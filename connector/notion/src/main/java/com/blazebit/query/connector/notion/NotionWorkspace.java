@@ -25,8 +25,8 @@ import com.fasterxml.jackson.databind.JsonNode;
  * only through the Notion Enterprise admin UI or the Security &amp; Compliance partner
  * programme's Discovery API.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionWorkspace {
 

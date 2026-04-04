@@ -29,8 +29,8 @@ import java.util.Set;
  *       {@link NotionConnectorConfig#DATABASE_ROWS_ENABLED})</li>
  * </ul>
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public final class NotionSchemaProvider implements QuerySchemaProvider {
 

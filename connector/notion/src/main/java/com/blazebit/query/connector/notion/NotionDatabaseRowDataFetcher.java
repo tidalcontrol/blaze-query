@@ -30,8 +30,8 @@ import java.util.List;
  * <p><b>Performance note:</b> One or more API calls are issued per database (pagination).
  * Restrict which databases the integration can access to limit the volume of data fetched.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionDatabaseRowDataFetcher implements DataFetcher<NotionDatabaseRow>, Serializable {
 

@@ -26,8 +26,8 @@ import java.util.List;
  * audit logs) are not exposed by the Notion public REST API. They require either the
  * Notion admin UI or admission to Notion's Security &amp; Compliance partner programme.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionWorkspaceDataFetcher implements DataFetcher<NotionWorkspace>, Serializable {
 

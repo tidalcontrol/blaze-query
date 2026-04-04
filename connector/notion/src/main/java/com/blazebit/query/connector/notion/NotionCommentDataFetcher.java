@@ -26,8 +26,8 @@ import java.util.List;
  * <p><b>Performance note:</b> One API call is issued per accessible page. Limit the
  * pages the integration can access to reduce load in large workspaces.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionCommentDataFetcher implements DataFetcher<NotionComment>, Serializable {
 

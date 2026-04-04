@@ -32,8 +32,8 @@ import java.util.List;
  * <p><b>Performance note:</b> API calls grow rapidly with depth in deeply nested pages.
  * Use depth &gt; 1 only when complete DLP coverage of nested content is required.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionBlockDataFetcher implements DataFetcher<NotionBlock>, Serializable {
 

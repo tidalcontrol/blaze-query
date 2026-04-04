@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.JsonNode;
  *   <li>Correlate email addresses with your identity provider for access reviews.</li>
  * </ul>
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionUser {
 

@@ -19,8 +19,8 @@ import com.fasterxml.jackson.databind.JsonNode;
  *       the page is permanently deleted.</li>
  * </ul>
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionComment {
 

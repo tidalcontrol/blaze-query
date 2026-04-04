@@ -30,8 +30,8 @@ import com.fasterxml.jackson.databind.JsonNode;
  * <p>This fetcher is disabled by default. Enable via
  * {@link NotionConnectorConfig#DATABASE_ROWS_ENABLED}.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class NotionDatabaseRow {
 
