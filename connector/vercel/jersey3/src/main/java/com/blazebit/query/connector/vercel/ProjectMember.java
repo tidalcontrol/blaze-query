@@ -14,8 +14,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * <p>Security-relevant: project-level roles can be higher than a member's
  * team role. A team {@code VIEWER} can be a project {@code ADMIN}.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProjectMember {

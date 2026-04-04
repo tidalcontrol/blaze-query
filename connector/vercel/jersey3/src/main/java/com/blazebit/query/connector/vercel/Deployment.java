@@ -16,8 +16,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * (detects non-git deploys like {@code cli} or {@code api-trigger}), {@code creator},
  * and {@code state}/{@code checksConclusion} for failed security checks.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Deployment {

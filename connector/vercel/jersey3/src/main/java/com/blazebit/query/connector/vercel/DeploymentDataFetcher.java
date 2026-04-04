@@ -21,8 +21,8 @@ import java.util.List;
  * configured with a {@code teamId} it is automatically applied as a query parameter.
  * Results are limited to the most recent 100 deployments per client.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class DeploymentDataFetcher implements DataFetcher<Deployment>, Serializable {
 

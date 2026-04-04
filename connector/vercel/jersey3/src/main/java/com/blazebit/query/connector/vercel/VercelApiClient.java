@@ -23,8 +23,8 @@ import java.util.List;
  * <p>Configure with a personal access token (and optionally a team ID for team-scoped queries).
  * Create via {@code new VercelApiClient(token)} or {@code new VercelApiClient(token, teamId)}.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class VercelApiClient {
 

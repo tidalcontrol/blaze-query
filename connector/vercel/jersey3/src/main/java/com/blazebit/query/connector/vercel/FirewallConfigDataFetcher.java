@@ -22,8 +22,8 @@ import java.util.List;
  * {@code GET /v1/security/firewall/config/latest?projectIdOrName={id}}
  * is called for each.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class FirewallConfigDataFetcher implements DataFetcher<FirewallConfig>, Serializable {
 

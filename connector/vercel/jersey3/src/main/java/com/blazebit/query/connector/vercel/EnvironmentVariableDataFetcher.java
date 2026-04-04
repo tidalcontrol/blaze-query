@@ -23,8 +23,8 @@ import java.util.List;
  * <p>Note: values of {@code sensitive} and {@code encrypted} variables are
  * redacted by the API; only the key, type, and target are returned for those.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class EnvironmentVariableDataFetcher implements DataFetcher<EnvironmentVariable>, Serializable {
 

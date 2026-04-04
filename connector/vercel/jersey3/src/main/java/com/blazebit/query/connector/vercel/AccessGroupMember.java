@@ -14,8 +14,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * <p>Useful for access reviews: verifying who belongs to each group,
  * what role they hold, and their broader team role context.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AccessGroupMember {

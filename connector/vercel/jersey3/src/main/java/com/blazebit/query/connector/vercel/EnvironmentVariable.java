@@ -18,8 +18,8 @@ import java.util.List;
  * {@code target} (whether a secret reaches production), and {@code system}
  * (whether this is an auto-exposed system variable).
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EnvironmentVariable {

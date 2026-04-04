@@ -11,8 +11,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  *
  * <p>Returned by {@code GET /v3/teams/{teamId}/members}.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TeamMember {

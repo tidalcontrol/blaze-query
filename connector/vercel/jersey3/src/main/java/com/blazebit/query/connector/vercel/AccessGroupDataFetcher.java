@@ -23,8 +23,8 @@ import java.util.List;
  * <p>Useful for auditing role-based project access and identifying groups that
  * are (or are not) managed by directory sync.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class AccessGroupDataFetcher implements DataFetcher<AccessGroup>, Serializable {
 

@@ -24,8 +24,8 @@ import java.util.List;
  * (e.g. {@code firewall.attack}, {@code project.env-variable.created}) are
  * being sent to an appropriate endpoint, and that no unexpected webhooks exist.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class WebhookDataFetcher implements DataFetcher<Webhook>, Serializable {
 

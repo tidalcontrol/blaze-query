@@ -24,8 +24,8 @@ import java.util.List;
  * <p>The returned {@link Team} objects are cached in the session and reused by
  * {@link TeamMemberDataFetcher}.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class TeamDataFetcher implements DataFetcher<Team>, Serializable {
 

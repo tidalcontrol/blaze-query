@@ -11,8 +11,8 @@ import java.lang.reflect.Member;
 /**
  * A method filter for the Vercel connector model classes.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class VercelConventionContext implements ConventionContext {
 

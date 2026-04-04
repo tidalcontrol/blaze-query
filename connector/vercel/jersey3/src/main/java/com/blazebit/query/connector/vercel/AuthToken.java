@@ -13,8 +13,8 @@ import java.util.List;
  *
  * <p>Returned by {@code GET /v6/user/tokens}.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AuthToken {

@@ -12,8 +12,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * <p>Returned by {@code GET /v1/access-groups}.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AccessGroup {

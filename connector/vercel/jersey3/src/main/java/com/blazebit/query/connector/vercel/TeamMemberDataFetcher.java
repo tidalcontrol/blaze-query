@@ -23,8 +23,8 @@ import java.util.List;
  * <p>Useful for auditing who has access to each team, what roles they hold,
  * and how they joined (SAML, directory sync, invitation, etc.).
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class TeamMemberDataFetcher implements DataFetcher<TeamMember>, Serializable {
 

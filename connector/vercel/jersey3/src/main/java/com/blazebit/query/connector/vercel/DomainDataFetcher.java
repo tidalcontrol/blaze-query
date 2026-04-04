@@ -20,8 +20,8 @@ import java.util.List;
  * <p>Uses {@code GET /v5/domains}. When the {@link VercelApiClient} is
  * configured with a {@code teamId} it is automatically applied as a query parameter.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class DomainDataFetcher implements DataFetcher<Domain>, Serializable {
 

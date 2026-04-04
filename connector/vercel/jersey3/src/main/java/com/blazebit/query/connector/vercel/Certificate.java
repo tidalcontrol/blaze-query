@@ -16,8 +16,8 @@ import java.util.List;
  * <p>Security-relevant: {@code expiresAt} for expiry monitoring and
  * {@code autoRenew} to detect certificates that will not be renewed automatically.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Certificate {

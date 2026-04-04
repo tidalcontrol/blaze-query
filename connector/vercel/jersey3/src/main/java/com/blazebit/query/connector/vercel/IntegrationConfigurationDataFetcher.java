@@ -20,8 +20,8 @@ import java.util.List;
  * <p>Uses {@code GET /v1/integrations/configurations}. The response is a bare
  * JSON array (no wrapper object and no pagination).
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class IntegrationConfigurationDataFetcher implements DataFetcher<IntegrationConfiguration>, Serializable {
 

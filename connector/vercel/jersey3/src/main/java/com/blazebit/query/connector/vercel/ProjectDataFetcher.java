@@ -23,8 +23,8 @@ import java.util.List;
  * <p>Useful for auditing which projects have password protection or SSO protection
  * enabled, and for detecting projects that auto-expose system environment variables.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class ProjectDataFetcher implements DataFetcher<Project>, Serializable {
 

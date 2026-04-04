@@ -21,8 +21,8 @@ import java.util.List;
  * session cache and then {@code GET /v1/access-groups/{id}/members} is called
  * for each.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class AccessGroupMemberDataFetcher implements DataFetcher<AccessGroupMember>, Serializable {
 

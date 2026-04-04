@@ -17,8 +17,8 @@ import java.util.List;
  * <p>Security-relevant fields: {@code firewallEnabled}, managed rule sets
  * (OWASP, bot protection), and custom IP block/allow rules.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FirewallConfig {

@@ -16,8 +16,8 @@ import java.util.List;
  * <p>Security-relevant: missing log drains mean no audit trail; log drains
  * without {@code request} in their sources miss HTTP access logs.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LogDrain {

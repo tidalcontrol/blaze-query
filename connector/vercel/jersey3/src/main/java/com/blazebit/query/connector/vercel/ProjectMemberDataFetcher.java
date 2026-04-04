@@ -23,8 +23,8 @@ import java.util.List;
  * <p>Project roles may be higher than the member's team role, making this
  * essential for privilege escalation audits.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class ProjectMemberDataFetcher implements DataFetcher<ProjectMember>, Serializable {
 

@@ -17,8 +17,8 @@ import java.util.List;
  * {@code status} shows whether it is active or suspended, and
  * {@code projectSelection} shows whether it has access to all projects.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class IntegrationConfiguration {

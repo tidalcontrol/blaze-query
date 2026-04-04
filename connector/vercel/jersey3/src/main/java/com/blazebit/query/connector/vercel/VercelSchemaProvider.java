@@ -13,8 +13,8 @@ import java.util.Set;
 /**
  * The schema provider for the Vercel connector.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public final class VercelSchemaProvider implements QuerySchemaProvider {
 

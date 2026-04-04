@@ -23,8 +23,8 @@ import java.util.List;
  * <p>Useful for auditing which tokens exist, when they were last used, and
  * whether any have been flagged as leaked or are close to expiry.
  *
- * @author Blazebit
- * @since 1.0.0
+ * @author Martijn Sprengers
+ * @since 2.4.4
  */
 public class AuthTokenDataFetcher implements DataFetcher<AuthToken>, Serializable {
 
