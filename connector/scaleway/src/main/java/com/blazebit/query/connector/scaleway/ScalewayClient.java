@@ -15,19 +15,24 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * HTTP client wrapper for the Scaleway REST API.
- * Handles authentication, pagination, and JSON deserialization.
+ * Handles authentication, pagination, and JSON deserialization for the
+ * IAM, Instance, Secret Manager, Key Manager, Audit Trail, Kubernetes,
+ * Container Registry, and VPC APIs.
  *
  * @author Blazebit
  * @since 2.4.4
  */
 public class ScalewayClient implements Serializable {
 
-	private static final String IAM_BASE_URL = "https://api.scaleway.com/iam/v1alpha1";
-	private static final String INSTANCE_BASE_URL = "https://api.scaleway.com/instance/v1/zones";
+	private static final String BASE_URL = "https://api.scaleway.com";
+	private static final String IAM_BASE_URL = BASE_URL + "/iam/v1alpha1";
+	private static final String INSTANCE_BASE_URL = BASE_URL + "/instance/v1/zones";
 	private static final int PAGE_SIZE = 100;
 
 	private final String secretKey;
@@ -42,12 +47,25 @@ public class ScalewayClient implements Serializable {
 	 *
 	 * @param secretKey      the API key secret used as X-Auth-Token
 	 * @param organizationId the Scaleway organization ID
-	 * @param zones          list of zones to query for Instance API (e.g. "fr-par-1", "nl-ams-1")
+	 * @param zones          list of zones to query for zone-based APIs (e.g. "fr-par-1", "nl-ams-1")
 	 */
 	public ScalewayClient(String secretKey, String organizationId, List<String> zones) {
 		this.secretKey = secretKey;
 		this.organizationId = organizationId;
 		this.zones = zones != null ? zones : List.of( "fr-par-1", "fr-par-2", "nl-ams-1", "pl-waw-1" );
+	}
+
+	/**
+	 * Derives the unique set of regions from the configured zones by stripping the
+	 * trailing zone index (e.g. "fr-par-1" → "fr-par", "nl-ams-1" → "nl-ams").
+	 */
+	List<String> regions() {
+		Set<String> regions = new LinkedHashSet<>();
+		for ( String zone : zones ) {
+			int lastDash = zone.lastIndexOf( '-' );
+			regions.add( lastDash > 0 ? zone.substring( 0, lastDash ) : zone );
+		}
+		return new ArrayList<>( regions );
 	}
 
 	private HttpClient httpClient() {
@@ -68,78 +86,59 @@ public class ScalewayClient implements Serializable {
 	// IAM API
 	// -------------------------------------------------------------------------
 
-	/**
-	 * Lists all IAM users in the organization with full pagination.
-	 */
+	/** Lists all IAM users in the organization with full pagination. */
 	public List<JsonNode> listIamUsers() throws IOException, InterruptedException {
 		return fetchIamPaged( "/users?order_by=created_at_asc&organization_id=" + organizationId, "users" );
 	}
 
-	/**
-	 * Lists all IAM groups in the organization with full pagination.
-	 */
+	/** Lists all IAM groups in the organization with full pagination. */
 	public List<JsonNode> listIamGroups() throws IOException, InterruptedException {
 		return fetchIamPaged( "/groups?order_by=created_at_asc&organization_id=" + organizationId, "groups" );
 	}
 
-	/**
-	 * Lists all IAM applications in the organization with full pagination.
-	 */
+	/** Lists all IAM applications in the organization with full pagination. */
 	public List<JsonNode> listIamApplications() throws IOException, InterruptedException {
 		return fetchIamPaged( "/applications?order_by=created_at_asc&organization_id=" + organizationId, "applications" );
 	}
 
-	/**
-	 * Lists all IAM API keys in the organization with full pagination.
-	 */
+	/** Lists all IAM API keys in the organization with full pagination. */
 	public List<JsonNode> listIamApiKeys() throws IOException, InterruptedException {
 		return fetchIamPaged( "/api-keys?order_by=created_at_asc&organization_id=" + organizationId, "api_keys" );
 	}
 
-	/**
-	 * Lists all IAM policies in the organization with full pagination.
-	 */
+	/** Lists all IAM policies in the organization with full pagination. */
 	public List<JsonNode> listIamPolicies() throws IOException, InterruptedException {
 		return fetchIamPaged( "/policies?order_by=created_at_asc&organization_id=" + organizationId, "policies" );
 	}
 
-	/**
-	 * Lists all SSH keys in the organization with full pagination.
-	 */
+	/** Lists all SSH keys in the organization with full pagination. */
 	public List<JsonNode> listIamSshKeys() throws IOException, InterruptedException {
 		return fetchIamPaged( "/ssh-keys?order_by=created_at_asc&organization_id=" + organizationId, "ssh_keys" );
 	}
 
 	// -------------------------------------------------------------------------
-	// Instance API
+	// Instance API (zone-based)
 	// -------------------------------------------------------------------------
 
-	/**
-	 * Lists all instances/servers across all configured zones with full pagination.
-	 */
+	/** Lists all instances/servers across all configured zones with full pagination. */
 	public List<JsonNode> listInstances() throws IOException, InterruptedException {
 		List<JsonNode> result = new ArrayList<>();
 		for ( String zone : zones ) {
-			result.addAll( fetchInstancePaged( zone, "/servers", "servers" ) );
+			result.addAll( fetchZonePaged( INSTANCE_BASE_URL, zone, "/servers", "servers" ) );
 		}
 		return result;
 	}
 
-	/**
-	 * Lists all security groups across all configured zones with full pagination.
-	 */
+	/** Lists all security groups across all configured zones with full pagination. */
 	public List<JsonNode> listSecurityGroups() throws IOException, InterruptedException {
 		List<JsonNode> result = new ArrayList<>();
 		for ( String zone : zones ) {
-			result.addAll( fetchInstancePaged( zone, "/security_groups", "security_groups" ) );
+			result.addAll( fetchZonePaged( INSTANCE_BASE_URL, zone, "/security_groups", "security_groups" ) );
 		}
 		return result;
 	}
 
-	/**
-	 * Lists all rules for a specific security group in a given zone.
-	 * Rules are returned as raw {@link JsonNode} objects for mapping in the data fetcher.
-	 */
+	/** Lists all rules for a specific security group in a given zone. */
 	public List<JsonNode> listSecurityGroupRuleNodes(String securityGroupId, String zone)
 			throws IOException, InterruptedException {
 		String url = INSTANCE_BASE_URL + "/" + zone + "/security_groups/" + securityGroupId + "/rules";
@@ -150,6 +149,110 @@ public class ScalewayClient implements Serializable {
 			for ( JsonNode rule : rules ) {
 				result.add( rule );
 			}
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// Secret Manager API (region-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists all secrets across all derived regions with full pagination. */
+	public List<JsonNode> listSecrets() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String region : regions() ) {
+			result.addAll( fetchRegionPaged( "/secret-manager/v1beta1/regions", region, "/secrets", "secrets" ) );
+		}
+		return result;
+	}
+
+	/** Lists all secret versions for a given secret ID and region. */
+	public List<JsonNode> listSecretVersions(String secretId, String region)
+			throws IOException, InterruptedException {
+		return fetchRegionPaged( "/secret-manager/v1beta1/regions", region,
+				"/secrets/" + secretId + "/versions", "versions" );
+	}
+
+	// -------------------------------------------------------------------------
+	// Key Manager (KMS) API (region-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists all KMS keys across all derived regions with full pagination. */
+	public List<JsonNode> listKmsKeys() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String region : regions() ) {
+			result.addAll( fetchRegionPaged( "/key-manager/v1alpha1/regions", region, "/keys", "keys" ) );
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// Audit Trail API (region-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists recent audit trail events across all derived regions with full pagination. */
+	public List<JsonNode> listAuditEvents() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String region : regions() ) {
+			result.addAll( fetchRegionPaged( "/audit-trail/v1alpha1/regions", region,
+					"/events?organization_id=" + organizationId, "events" ) );
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// Kubernetes Kapsule API (region-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists all Kubernetes clusters across all derived regions with full pagination. */
+	public List<JsonNode> listK8sClusters() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String region : regions() ) {
+			result.addAll( fetchRegionPaged( "/k8s/v1/regions", region, "/clusters", "clusters" ) );
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// Container Registry API (region-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists all container registry namespaces across all derived regions. */
+	public List<JsonNode> listRegistryNamespaces() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String region : regions() ) {
+			result.addAll( fetchRegionPaged( "/registry/v1/regions", region, "/namespaces", "namespaces" ) );
+		}
+		return result;
+	}
+
+	/** Lists all container images across all derived regions. */
+	public List<JsonNode> listRegistryImages() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String region : regions() ) {
+			result.addAll( fetchRegionPaged( "/registry/v1/regions", region, "/images", "images" ) );
+		}
+		return result;
+	}
+
+	// -------------------------------------------------------------------------
+	// VPC API (region-based)
+	// -------------------------------------------------------------------------
+
+	/** Lists all VPCs across all derived regions with full pagination. */
+	public List<JsonNode> listVpcs() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String region : regions() ) {
+			result.addAll( fetchRegionPaged( "/vpc/v2/regions", region, "/vpcs", "vpcs" ) );
+		}
+		return result;
+	}
+
+	/** Lists all private networks across all derived regions with full pagination. */
+	public List<JsonNode> listPrivateNetworks() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		for ( String region : regions() ) {
+			result.addAll( fetchRegionPaged( "/vpc/v2/regions", region, "/private-networks", "private_networks" ) );
 		}
 		return result;
 	}
@@ -181,12 +284,36 @@ public class ScalewayClient implements Serializable {
 		return result;
 	}
 
-	private List<JsonNode> fetchInstancePaged(String zone, String path, String arrayField)
+	private List<JsonNode> fetchZonePaged(String baseUrl, String zone, String path, String arrayField)
 			throws IOException, InterruptedException {
 		List<JsonNode> result = new ArrayList<>();
 		int page = 1;
 		while ( true ) {
-			String url = INSTANCE_BASE_URL + "/" + zone + path + "?per_page=" + PAGE_SIZE + "&page=" + page;
+			String url = baseUrl + "/" + zone + path + "?per_page=" + PAGE_SIZE + "&page=" + page;
+			JsonNode response = get( url );
+			JsonNode items = response.path( arrayField );
+			if ( !items.isArray() || items.isEmpty() ) {
+				break;
+			}
+			for ( JsonNode item : items ) {
+				result.add( item );
+			}
+			if ( items.size() < PAGE_SIZE ) {
+				break;
+			}
+			page++;
+		}
+		return result;
+	}
+
+	private List<JsonNode> fetchRegionPaged(String serviceBase, String region, String path, String arrayField)
+			throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		int page = 1;
+		while ( true ) {
+			String separator = path.contains( "?" ) ? "&" : "?";
+			String url = BASE_URL + serviceBase + "/" + region + path
+					+ separator + "page_size=" + PAGE_SIZE + "&page=" + page;
 			JsonNode response = get( url );
 			JsonNode items = response.path( arrayField );
 			if ( !items.isArray() || items.isEmpty() ) {
@@ -212,7 +339,8 @@ public class ScalewayClient implements Serializable {
 				.build();
 		HttpResponse<String> response = httpClient().send( request, HttpResponse.BodyHandlers.ofString() );
 		if ( response.statusCode() < 200 || response.statusCode() >= 300 ) {
-			throw new IOException( "Scaleway API request failed [" + response.statusCode() + "]: " + url + " — " + response.body() );
+			throw new IOException( "Scaleway API request failed [" + response.statusCode() + "]: "
+					+ url + " — " + response.body() );
 		}
 		return objectMapper().readTree( response.body() );
 	}

@@ -222,7 +222,9 @@ import com.blazebit.query.connector.google.drive.GoogleDrive;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.auth.http.HttpCredentialsAdapter;
+import com.blazebit.query.connector.scaleway.ScalewayAuditEvent;
 import com.blazebit.query.connector.scaleway.ScalewayClient;
+import com.blazebit.query.connector.scaleway.ScalewayConnectorConfig;
 import com.blazebit.query.connector.scaleway.ScalewayIamApiKey;
 import com.blazebit.query.connector.scaleway.ScalewayIamApplication;
 import com.blazebit.query.connector.scaleway.ScalewayIamGroup;
@@ -230,8 +232,16 @@ import com.blazebit.query.connector.scaleway.ScalewayIamPolicy;
 import com.blazebit.query.connector.scaleway.ScalewayIamSshKey;
 import com.blazebit.query.connector.scaleway.ScalewayIamUser;
 import com.blazebit.query.connector.scaleway.ScalewayInstance;
+import com.blazebit.query.connector.scaleway.ScalewayK8sCluster;
+import com.blazebit.query.connector.scaleway.ScalewayKmsKey;
+import com.blazebit.query.connector.scaleway.ScalewayPrivateNetwork;
+import com.blazebit.query.connector.scaleway.ScalewayRegistryImage;
+import com.blazebit.query.connector.scaleway.ScalewayRegistryNamespace;
+import com.blazebit.query.connector.scaleway.ScalewaySecret;
+import com.blazebit.query.connector.scaleway.ScalewaySecretVersion;
 import com.blazebit.query.connector.scaleway.ScalewaySecurityGroup;
 import com.blazebit.query.connector.scaleway.ScalewaySecurityGroupRule;
+import com.blazebit.query.connector.scaleway.ScalewayVpc;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.microsoft.graph.beta.serviceclient.GraphServiceClient;
 import jakarta.persistence.EntityManager;
@@ -593,16 +603,32 @@ public class Main {
 			queryContextBuilder.registerSchemaObjectAlias( DatadogMonitorDowntime.class, "DatadogMonitorDowntime" );
 			queryContextBuilder.registerSchemaObjectAlias( DatadogPermission.class, "DatadogPermission" );
 
-			// Scaleway
+			// Scaleway — IAM
 			queryContextBuilder.registerSchemaObjectAlias( ScalewayIamUser.class, "ScalewayIamUser" );
 			queryContextBuilder.registerSchemaObjectAlias( ScalewayIamGroup.class, "ScalewayIamGroup" );
 			queryContextBuilder.registerSchemaObjectAlias( ScalewayIamApplication.class, "ScalewayIamApplication" );
 			queryContextBuilder.registerSchemaObjectAlias( ScalewayIamApiKey.class, "ScalewayIamApiKey" );
 			queryContextBuilder.registerSchemaObjectAlias( ScalewayIamPolicy.class, "ScalewayIamPolicy" );
 			queryContextBuilder.registerSchemaObjectAlias( ScalewayIamSshKey.class, "ScalewayIamSshKey" );
+			// Scaleway — Instance
 			queryContextBuilder.registerSchemaObjectAlias( ScalewayInstance.class, "ScalewayInstance" );
 			queryContextBuilder.registerSchemaObjectAlias( ScalewaySecurityGroup.class, "ScalewaySecurityGroup" );
 			queryContextBuilder.registerSchemaObjectAlias( ScalewaySecurityGroupRule.class, "ScalewaySecurityGroupRule" );
+			// Scaleway — Secret Manager
+			queryContextBuilder.registerSchemaObjectAlias( ScalewaySecret.class, "ScalewaySecret" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewaySecretVersion.class, "ScalewaySecretVersion" );
+			// Scaleway — Key Manager (KMS)
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayKmsKey.class, "ScalewayKmsKey" );
+			// Scaleway — Audit Trail
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayAuditEvent.class, "ScalewayAuditEvent" );
+			// Scaleway — Kubernetes
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayK8sCluster.class, "ScalewayK8sCluster" );
+			// Scaleway — Container Registry
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayRegistryNamespace.class, "ScalewayRegistryNamespace" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayRegistryImage.class, "ScalewayRegistryImage" );
+			// Scaleway — VPC
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayVpc.class, "ScalewayVpc" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayPrivateNetwork.class, "ScalewayPrivateNetwork" );
 
 			// Observatory
 			queryContextBuilder.registerSchemaObject(
@@ -2463,6 +2489,149 @@ public class Main {
 		List<Object[]> sgRuleSshResult = sgRuleSshQuery.getResultList();
 		System.out.println( "Scaleway Security Group Rules - SSH port 22 open to internet" );
 		print( sgRuleSshResult );
+
+		// Secrets: list all secrets
+		TypedQuery<Object[]> secretQuery = session.createQuery(
+				"SELECT s.id, s.name, s.status, s.versionCount, s.region FROM ScalewaySecret s" );
+		List<Object[]> secretResult = secretQuery.getResultList();
+		System.out.println( "Scaleway Secrets" );
+		print( secretResult );
+
+		// Secrets: find locked or empty secrets (hygiene)
+		TypedQuery<Object[]> secretLockedQuery = session.createQuery(
+				"""
+				SELECT s.id, s.name, s.status, s.versionCount
+				FROM ScalewaySecret s
+				WHERE s.status = 'locked' OR s.versionCount = 0
+				""" );
+		List<Object[]> secretLockedResult = secretLockedQuery.getResultList();
+		System.out.println( "Scaleway Secrets - locked or no versions" );
+		print( secretLockedResult );
+
+		// Secret Versions: find disabled versions (rotation hygiene)
+		TypedQuery<Object[]> secretVersionQuery = session.createQuery(
+				"SELECT v.secretId, v.revision, v.status, v.createdAt FROM ScalewaySecretVersion v WHERE v.status = 'disabled'" );
+		List<Object[]> secretVersionResult = secretVersionQuery.getResultList();
+		System.out.println( "Scaleway Secret Versions - disabled" );
+		print( secretVersionResult );
+
+		// KMS Keys: list all keys
+		TypedQuery<Object[]> kmsKeyQuery = session.createQuery(
+				"SELECT k.id, k.name, k.state, k.algorithm, k.rotationEnabled, k.region FROM ScalewayKmsKey k" );
+		List<Object[]> kmsKeyResult = kmsKeyQuery.getResultList();
+		System.out.println( "Scaleway KMS Keys" );
+		print( kmsKeyResult );
+
+		// KMS Keys: find enabled keys with no rotation policy (compliance risk)
+		TypedQuery<Object[]> kmsNoRotationQuery = session.createQuery(
+				"""
+				SELECT k.id, k.name, k.region
+				FROM ScalewayKmsKey k
+				WHERE k.state = 'enabled' AND k.rotationEnabled = false
+				""" );
+		List<Object[]> kmsNoRotationResult = kmsNoRotationQuery.getResultList();
+		System.out.println( "Scaleway KMS Keys - no rotation policy (enabled keys)" );
+		print( kmsNoRotationResult );
+
+		// Audit Events: list recent events
+		TypedQuery<Object[]> auditQuery = session.createQuery(
+				"SELECT e.id, e.recordedAt, e.apiMethod, e.status, e.principalId, e.sourceIp FROM ScalewayAuditEvent e" );
+		List<Object[]> auditResult = auditQuery.getResultList();
+		System.out.println( "Scaleway Audit Events" );
+		print( auditResult );
+
+		// Audit Events: find forbidden access attempts
+		TypedQuery<Object[]> auditForbiddenQuery = session.createQuery(
+				"""
+				SELECT e.recordedAt, e.apiMethod, e.principalId, e.principalType, e.sourceIp
+				FROM ScalewayAuditEvent e
+				WHERE e.status = 'forbidden'
+				""" );
+		List<Object[]> auditForbiddenResult = auditForbiddenQuery.getResultList();
+		System.out.println( "Scaleway Audit Events - forbidden access attempts" );
+		print( auditForbiddenResult );
+
+		// Audit Events: find destructive actions (deletes)
+		TypedQuery<Object[]> auditDeleteQuery = session.createQuery(
+				"""
+				SELECT e.recordedAt, e.apiMethod, e.principalId, e.resourceType, e.resourceId
+				FROM ScalewayAuditEvent e
+				WHERE e.apiMethod LIKE '%Delete%' AND e.status = 'success'
+				""" );
+		List<Object[]> auditDeleteResult = auditDeleteQuery.getResultList();
+		System.out.println( "Scaleway Audit Events - successful destructive operations" );
+		print( auditDeleteResult );
+
+		// Kubernetes: list all clusters
+		TypedQuery<Object[]> k8sQuery = session.createQuery(
+				"SELECT c.id, c.name, c.version, c.status, c.upgradeAvailable, c.privateNetworkEnabled, c.region FROM ScalewayK8sCluster c" );
+		List<Object[]> k8sResult = k8sQuery.getResultList();
+		System.out.println( "Scaleway Kubernetes Clusters" );
+		print( k8sResult );
+
+		// Kubernetes: find clusters with pending upgrades
+		TypedQuery<Object[]> k8sUpgradeQuery = session.createQuery(
+				"SELECT c.id, c.name, c.version FROM ScalewayK8sCluster c WHERE c.upgradeAvailable = true AND c.status = 'ready'" );
+		List<Object[]> k8sUpgradeResult = k8sUpgradeQuery.getResultList();
+		System.out.println( "Scaleway Kubernetes Clusters - upgrade available" );
+		print( k8sUpgradeResult );
+
+		// Kubernetes: find ready clusters not on a private network
+		TypedQuery<Object[]> k8sNoPrivNetQuery = session.createQuery(
+				"""
+				SELECT c.id, c.name, c.region
+				FROM ScalewayK8sCluster c
+				WHERE c.privateNetworkEnabled = false AND c.status = 'ready'
+				""" );
+		List<Object[]> k8sNoPrivNetResult = k8sNoPrivNetQuery.getResultList();
+		System.out.println( "Scaleway Kubernetes Clusters - no private network (ready)" );
+		print( k8sNoPrivNetResult );
+
+		// Registry: list all namespaces
+		TypedQuery<Object[]> regNsQuery = session.createQuery(
+				"SELECT n.id, n.name, n.publiclyAccessible, n.imageCount, n.region FROM ScalewayRegistryNamespace n" );
+		List<Object[]> regNsResult = regNsQuery.getResultList();
+		System.out.println( "Scaleway Registry Namespaces" );
+		print( regNsResult );
+
+		// Registry: find publicly accessible namespaces
+		TypedQuery<Object[]> regNsPublicQuery = session.createQuery(
+				"SELECT n.id, n.name, n.endpoint FROM ScalewayRegistryNamespace n WHERE n.publiclyAccessible = true" );
+		List<Object[]> regNsPublicResult = regNsPublicQuery.getResultList();
+		System.out.println( "Scaleway Registry Namespaces - publicly accessible" );
+		print( regNsPublicResult );
+
+		// Registry Images: find publicly visible images
+		TypedQuery<Object[]> regImgPublicQuery = session.createQuery(
+				"SELECT i.id, i.name, i.namespaceId, i.region FROM ScalewayRegistryImage i WHERE i.visibility = 'public'" );
+		List<Object[]> regImgPublicResult = regImgPublicQuery.getResultList();
+		System.out.println( "Scaleway Registry Images - public visibility" );
+		print( regImgPublicResult );
+
+		// VPCs: list all VPCs
+		TypedQuery<Object[]> vpcQuery = session.createQuery(
+				"SELECT v.id, v.name, v.region, v.defaultVpc, v.routingEnabled FROM ScalewayVpc v" );
+		List<Object[]> vpcResult = vpcQuery.getResultList();
+		System.out.println( "Scaleway VPCs" );
+		print( vpcResult );
+
+		// VPCs: find default VPCs with routing enabled (lateral movement risk)
+		TypedQuery<Object[]> vpcRiskQuery = session.createQuery(
+				"""
+				SELECT v.id, v.name, v.region
+				FROM ScalewayVpc v
+				WHERE v.defaultVpc = true AND v.routingEnabled = true
+				""" );
+		List<Object[]> vpcRiskResult = vpcRiskQuery.getResultList();
+		System.out.println( "Scaleway VPCs - default VPC with routing enabled (lateral movement risk)" );
+		print( vpcRiskResult );
+
+		// Private Networks: list all
+		TypedQuery<Object[]> pnQuery = session.createQuery(
+				"SELECT pn.id, pn.name, pn.vpcId, pn.region FROM ScalewayPrivateNetwork pn" );
+		List<Object[]> pnResult = pnQuery.getResultList();
+		System.out.println( "Scaleway Private Networks" );
+		print( pnResult );
 	}
 
 }
