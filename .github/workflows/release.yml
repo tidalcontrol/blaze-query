@@ -8,6 +8,7 @@ on:
         type: string
 permissions:
   contents: write # To write the version change to the repository
+  packages: write # To publish to GitHub Packages
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -43,6 +44,10 @@ jobs:
           OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Publish to GitHub Packages
+        run: ./gradlew publishMavenJavaPublicationToGitHubPackagesRepository -x test --no-daemon --stacktrace
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
