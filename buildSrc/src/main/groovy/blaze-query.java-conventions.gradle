@@ -29,6 +29,16 @@ test {
 }
 
 publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/tidalcontrol/blaze-query")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR") ?: "github-actions"
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
     publications {
         mavenJava(MavenPublication) {
             from(components.java)
@@ -76,8 +86,12 @@ tasks.withType(Javadoc).configureEach {
 }
 
 tasks.withType(Sign).configureEach {
-    onlyIf("not publishing to local Maven repository") {
-        !gradle.startParameter.taskNames.any { it == 'publishToMavenLocal' || it == 'publish' }
+    onlyIf("not publishing to local Maven or GitHub Packages") {
+        !gradle.startParameter.taskNames.any {
+            it == 'publishToMavenLocal' ||
+            it == 'publish' ||
+            it.contains('GitHubPackages')
+        }
     }
 }
 
