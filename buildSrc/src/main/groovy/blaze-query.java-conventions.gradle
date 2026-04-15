@@ -1,6 +1,5 @@
 plugins {
     id 'java-library'
-    id 'signing'
     id 'maven-publish'
     id 'com.diffplug.spotless'
 }
@@ -69,13 +68,6 @@ publishing {
     }
 }
 
-signing {
-    def signingKey = findProperty("signingKey")
-    def signingPassword = findProperty("signingPassword")
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign publishing.publications.mavenJava
-}
-
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
@@ -83,16 +75,6 @@ tasks.withType(JavaCompile).configureEach {
 tasks.withType(Javadoc).configureEach {
     options.encoding = 'UTF-8'
     failOnError false
-}
-
-tasks.withType(Sign).configureEach {
-    onlyIf("not publishing to local Maven or GitHub Packages") {
-        !gradle.startParameter.taskNames.any {
-            it == 'publishToMavenLocal' ||
-            it == 'publish' ||
-            it.contains('GitHubPackages')
-        }
-    }
 }
 
 tasks.compileJava.dependsOn tasks.spotlessApply

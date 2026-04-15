@@ -22,7 +22,7 @@ jobs:
           java-version: 17
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-      - name: Update version in gradle.properties
+      - name: Release
         run: |
           sed -i "s/^version=.*$/version=$VERSION/" gradle.properties
           git config --local user.name "github-actions[bot]"
@@ -30,23 +30,14 @@ jobs:
           git add gradle.properties
           git commit -m "Set version to $VERSION"
           git tag -a $VERSION -m "Release $VERSION"
-          ./gradlew publishToSonatype --no-daemon
+          ./gradlew publishMavenJavaPublicationToGitHubPackagesRepository -x test --no-daemon --stacktrace
           ./gradlew :incrementVersion --no-daemon
           git add gradle.properties
           git commit -m "Update to next development version"
           git push
           git push --tags
-          git reset --hard HEAD~1
-          ./gradlew findSonatypeStagingRepository closeAndReleaseSonatypeStagingRepository
         env:
           VERSION: ${{ inputs.version }}
-          OSSRH_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE }}
-      - name: Publish to GitHub Packages
-        run: ./gradlew publishMavenJavaPublicationToGitHubPackagesRepository -x test --no-daemon --stacktrace
-        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create release
         env:
