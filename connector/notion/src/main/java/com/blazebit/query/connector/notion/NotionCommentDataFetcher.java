@@ -39,14 +39,15 @@ public class NotionCommentDataFetcher implements DataFetcher<NotionComment>, Ser
 	@Override
 	public List<NotionComment> fetch(DataFetchContext context) {
 		try {
+			// Use the first client — the page list from the session cache already
+			// contains pages fetched by all configured clients.
 			List<NotionClient> clients = NotionConnectorConfig.NOTION_CLIENT.getAll( context );
+			NotionClient client = clients.get( 0 );
 			List<? extends NotionPage> pages = context.getSession().getOrFetch( NotionPage.class );
 			List<NotionComment> list = new ArrayList<>();
-			for ( NotionClient client : clients ) {
-				for ( NotionPage page : pages ) {
-					for ( JsonNode node : client.listComments( page.getId() ) ) {
-						list.add( NotionComment.fromJson( node, page.getId() ) );
-					}
+			for ( NotionPage page : pages ) {
+				for ( JsonNode node : client.listComments( page.getId() ) ) {
+					list.add( NotionComment.fromJson( node, page.getId() ) );
 				}
 			}
 			return list;

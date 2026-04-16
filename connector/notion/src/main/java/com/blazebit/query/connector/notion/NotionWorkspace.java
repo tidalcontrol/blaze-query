@@ -6,6 +6,8 @@ package com.blazebit.query.connector.notion;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import static com.blazebit.query.connector.notion.NotionJsonUtils.text;
+
 /**
  * Represents the Notion workspace that the integration bot belongs to,
  * as returned by {@code GET /v1/users/me}.
@@ -76,11 +78,6 @@ public class NotionWorkspace {
 
 		return new NotionWorkspace( workspaceId, workspaceName, botId, botName, botAvatarUrl,
 				maxFileUploadSize );
-	}
-
-	private static String text(JsonNode node, String field) {
-		JsonNode value = node.get( field );
-		return ( value == null || value.isNull() ) ? null : value.asText();
 	}
 
 	/** The UUID of the Notion workspace this integration is installed in. */

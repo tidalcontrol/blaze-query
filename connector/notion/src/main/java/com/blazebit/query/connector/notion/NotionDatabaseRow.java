@@ -6,6 +6,8 @@ package com.blazebit.query.connector.notion;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import static com.blazebit.query.connector.notion.NotionJsonUtils.*;
+
 /**
  * Represents a row (page) within a Notion database.
  *
@@ -100,7 +102,7 @@ public class NotionDatabaseRow {
 				JsonNode propValue = entry.getValue();
 				String extracted = extractPropertyText( propValue );
 				if ( extracted != null ) {
-					if ( propertiesSb.length() > 0 ) {
+					if ( !propertiesSb.isEmpty() ) {
 						propertiesSb.append( "; " );
 					}
 					propertiesSb.append( propName ).append( ": " ).append( extracted );
@@ -114,7 +116,7 @@ public class NotionDatabaseRow {
 
 		return new NotionDatabaseRow( id, databaseId, createdTime, lastEditedTime,
 				createdById, lastEditedById, archived, inTrash, title,
-				propertiesSb.length() > 0 ? propertiesSb.toString() : null );
+				!propertiesSb.isEmpty() ? propertiesSb.toString() : null );
 	}
 
 	private static String extractPropertyText(JsonNode prop) {
@@ -143,26 +145,26 @@ public class NotionDatabaseRow {
 				if ( value.isArray() ) {
 					StringBuilder sb = new StringBuilder();
 					for ( JsonNode opt : value ) {
-						if ( sb.length() > 0 ) sb.append( ", " );
+						if ( !sb.isEmpty() ) sb.append( ", " );
 						String name = text( opt, "name" );
 						if ( name != null ) sb.append( name );
 					}
-					return sb.length() > 0 ? sb.toString() : null;
+					return !sb.isEmpty() ? sb.toString() : null;
 				}
 				return null;
 			case "date":
 				String start = text( value, "start" );
 				String end = text( value, "end" );
-				return end != null ? start + " → " + end : start;
+				return end != null ? start + " \u2192 " + end : start;
 			case "people":
 				if ( value.isArray() ) {
 					StringBuilder sb = new StringBuilder();
 					for ( JsonNode person : value ) {
-						if ( sb.length() > 0 ) sb.append( ", " );
+						if ( !sb.isEmpty() ) sb.append( ", " );
 						String name = text( person, "name" );
 						if ( name != null ) sb.append( name );
 					}
-					return sb.length() > 0 ? sb.toString() : null;
+					return !sb.isEmpty() ? sb.toString() : null;
 				}
 				return null;
 			case "status":
@@ -170,35 +172,6 @@ public class NotionDatabaseRow {
 			default:
 				return null;
 		}
-	}
-
-	private static String richTextToPlain(JsonNode richTextArray) {
-		if ( !richTextArray.isArray() ) {
-			return null;
-		}
-		StringBuilder sb = new StringBuilder();
-		for ( JsonNode segment : richTextArray ) {
-			JsonNode pt = segment.get( "plain_text" );
-			if ( pt != null && !pt.isNull() ) {
-				sb.append( pt.asText() );
-			}
-		}
-		return sb.length() > 0 ? sb.toString() : null;
-	}
-
-	private static String text(JsonNode node, String field) {
-		JsonNode value = node.get( field );
-		return ( value == null || value.isNull() ) ? null : value.asText();
-	}
-
-	private static String nestedId(JsonNode node, String field) {
-		JsonNode nested = node.get( field );
-		return ( nested == null ) ? null : text( nested, "id" );
-	}
-
-	private static boolean booleanField(JsonNode node, String field) {
-		JsonNode value = node.get( field );
-		return value != null && value.asBoolean();
 	}
 
 	/** Notion row UUID (same as the underlying page UUID). */

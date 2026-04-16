@@ -6,6 +6,8 @@ package com.blazebit.query.connector.notion;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import static com.blazebit.query.connector.notion.NotionJsonUtils.*;
+
 /**
  * Represents a Notion block — the atomic unit of page content.
  *
@@ -50,7 +52,7 @@ public class NotionBlock {
 
 	/** Block types whose content is carried in a {@code rich_text} array. */
 	private static final java.util.Set<String> TEXT_BLOCK_TYPES = java.util.Set.of(
-			"paragraph", "heading_1", "heading_2", "heading_3", "heading_4",
+			"paragraph", "heading_1", "heading_2", "heading_3",
 			"bulleted_list_item", "numbered_list_item", "quote", "callout",
 			"code", "toggle", "to_do" );
 
@@ -106,33 +108,7 @@ public class NotionBlock {
 		if ( typeNode == null ) {
 			return null;
 		}
-		JsonNode richText = typeNode.get( "rich_text" );
-		if ( richText == null || !richText.isArray() ) {
-			return null;
-		}
-		StringBuilder sb = new StringBuilder();
-		for ( JsonNode segment : richText ) {
-			JsonNode pt = segment.get( "plain_text" );
-			if ( pt != null && !pt.isNull() ) {
-				sb.append( pt.asText() );
-			}
-		}
-		return sb.length() > 0 ? sb.toString() : null;
-	}
-
-	private static String text(JsonNode node, String field) {
-		JsonNode value = node.get( field );
-		return ( value == null || value.isNull() ) ? null : value.asText();
-	}
-
-	private static String nestedId(JsonNode node, String field) {
-		JsonNode nested = node.get( field );
-		return ( nested == null ) ? null : text( nested, "id" );
-	}
-
-	private static boolean booleanField(JsonNode node, String field) {
-		JsonNode value = node.get( field );
-		return value != null && value.asBoolean();
+		return richTextToPlain( typeNode.get( "rich_text" ) );
 	}
 
 	/** Notion block UUID. */

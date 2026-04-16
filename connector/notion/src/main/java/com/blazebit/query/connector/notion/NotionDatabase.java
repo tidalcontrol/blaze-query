@@ -6,6 +6,8 @@ package com.blazebit.query.connector.notion;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import static com.blazebit.query.connector.notion.NotionJsonUtils.*;
+
 /**
  * Represents a Notion database as returned by the search API.
  *
@@ -83,19 +85,7 @@ public class NotionDatabase {
 		boolean inline = booleanField( node, "is_inline" );
 		String url = text( node, "url" );
 
-		// Extract plain-text title from the rich-text title array
-		String title = null;
-		JsonNode titleArray = node.get( "title" );
-		if ( titleArray != null && titleArray.isArray() ) {
-			StringBuilder sb = new StringBuilder();
-			for ( JsonNode segment : titleArray ) {
-				JsonNode plainText = segment.get( "plain_text" );
-				if ( plainText != null && !plainText.isNull() ) {
-					sb.append( plainText.asText() );
-				}
-			}
-			title = sb.length() > 0 ? sb.toString() : null;
-		}
+		String title = richTextToPlain( node.get( "title" ) );
 
 		String parentType = null;
 		String parentId = null;
@@ -119,21 +109,6 @@ public class NotionDatabase {
 
 		return new NotionDatabase( id, title, createdTime, lastEditedTime, createdById, lastEditedById,
 				archived, inTrash, parentType, parentId, url, inline );
-	}
-
-	private static String text(JsonNode node, String field) {
-		JsonNode value = node.get( field );
-		return ( value == null || value.isNull() ) ? null : value.asText();
-	}
-
-	private static String nestedId(JsonNode node, String field) {
-		JsonNode nested = node.get( field );
-		return ( nested == null ) ? null : text( nested, "id" );
-	}
-
-	private static boolean booleanField(JsonNode node, String field) {
-		JsonNode value = node.get( field );
-		return value != null && value.asBoolean();
 	}
 
 	/** Notion database UUID. */

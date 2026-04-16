@@ -6,6 +6,8 @@ package com.blazebit.query.connector.notion;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import static com.blazebit.query.connector.notion.NotionJsonUtils.*;
+
 /**
  * Represents a Notion comment on a page or block.
  *
@@ -81,34 +83,10 @@ public class NotionComment {
 			}
 		}
 
-		// Extract concatenated plain text from the rich_text array
-		String plainText = null;
-		JsonNode richText = node.get( "rich_text" );
-		if ( richText != null && richText.isArray() ) {
-			StringBuilder sb = new StringBuilder();
-			for ( JsonNode segment : richText ) {
-				JsonNode pt = segment.get( "plain_text" );
-				if ( pt != null && !pt.isNull() ) {
-					sb.append( pt.asText() );
-				}
-			}
-			if ( sb.length() > 0 ) {
-				plainText = sb.toString();
-			}
-		}
+		String plainText = richTextToPlain( node.get( "rich_text" ) );
 
 		return new NotionComment( id, pageId, blockId, discussionId, createdTime, lastEditedTime,
 				createdById, plainText );
-	}
-
-	private static String text(JsonNode node, String field) {
-		JsonNode value = node.get( field );
-		return ( value == null || value.isNull() ) ? null : value.asText();
-	}
-
-	private static String nestedId(JsonNode node, String field) {
-		JsonNode nested = node.get( field );
-		return ( nested == null ) ? null : text( nested, "id" );
 	}
 
 	/** Notion comment UUID. */

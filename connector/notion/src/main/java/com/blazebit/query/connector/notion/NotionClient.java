@@ -255,7 +255,8 @@ public class NotionClient {
 		List<JsonNode> results = new ArrayList<>();
 		String cursor = null;
 		do {
-			String url = BASE_URL + path + "?page_size=" + PAGE_SIZE
+			char separator = path.contains( "?" ) ? '&' : '?';
+			String url = BASE_URL + path + separator + "page_size=" + PAGE_SIZE
 					+ ( cursor != null ? "&start_cursor=" + cursor : "" );
 			JsonNode body = executeRequest( newGetRequest( url, true ) );
 			body.get( "results" ).forEach( results::add );

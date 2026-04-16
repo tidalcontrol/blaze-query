@@ -6,6 +6,8 @@ package com.blazebit.query.connector.notion;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import static com.blazebit.query.connector.notion.NotionJsonUtils.*;
+
 /**
  * Represents a Notion page as returned by the search API.
  *
@@ -116,21 +118,6 @@ public class NotionPage {
 		String url = text( node, "url" );
 		return new NotionPage( id, createdTime, lastEditedTime, createdById, lastEditedById,
 				archived, inTrash, locked, publicUrl, parentType, parentId, url );
-	}
-
-	private static String text(JsonNode node, String field) {
-		JsonNode value = node.get( field );
-		return ( value == null || value.isNull() ) ? null : value.asText();
-	}
-
-	private static String nestedId(JsonNode node, String field) {
-		JsonNode nested = node.get( field );
-		return ( nested == null ) ? null : text( nested, "id" );
-	}
-
-	private static boolean booleanField(JsonNode node, String field) {
-		JsonNode value = node.get( field );
-		return value != null && value.asBoolean();
 	}
 
 	/** Notion page UUID. */

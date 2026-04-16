@@ -47,15 +47,16 @@ public class NotionBlockDataFetcher implements DataFetcher<NotionBlock>, Seriali
 	@Override
 	public List<NotionBlock> fetch(DataFetchContext context) {
 		try {
+			// Use the first client — the page list from the session cache already
+			// contains pages fetched by all configured clients.
 			List<NotionClient> clients = NotionConnectorConfig.NOTION_CLIENT.getAll( context );
+			NotionClient client = clients.get( 0 );
 			List<? extends NotionPage> pages = context.getSession().getOrFetch( NotionPage.class );
 			Integer configuredDepth = NotionConnectorConfig.BLOCK_MAX_DEPTH.find( context );
 			int maxDepth = ( configuredDepth != null && configuredDepth > 0 ) ? configuredDepth : DEFAULT_MAX_DEPTH;
 			List<NotionBlock> list = new ArrayList<>();
-			for ( NotionClient client : clients ) {
-				for ( NotionPage page : pages ) {
-					fetchBlocks( client, page.getId(), page.getId(), 1, maxDepth, list );
-				}
+			for ( NotionPage page : pages ) {
+				fetchBlocks( client, page.getId(), page.getId(), 1, maxDepth, list );
 			}
 			return list;
 		}

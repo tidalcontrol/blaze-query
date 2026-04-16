@@ -6,6 +6,8 @@ package com.blazebit.query.connector.notion;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import static com.blazebit.query.connector.notion.NotionJsonUtils.text;
+
 /**
  * Represents a Notion workspace user (person or bot integration).
  *
@@ -83,11 +85,6 @@ public class NotionUser {
 		}
 
 		return new NotionUser( id, type, name, avatarUrl, email, botOwnerId, botOwnerType );
-	}
-
-	private static String text(JsonNode node, String field) {
-		JsonNode value = node.get( field );
-		return ( value == null || value.isNull() ) ? null : value.asText();
 	}
 
 	/** Notion user UUID. */

@@ -47,14 +47,15 @@ public class NotionDatabaseRowDataFetcher implements DataFetcher<NotionDatabaseR
 			return List.of();
 		}
 		try {
+			// Use the first client — the database list from the session cache already
+			// contains databases fetched by all configured clients.
 			List<NotionClient> clients = NotionConnectorConfig.NOTION_CLIENT.getAll( context );
+			NotionClient client = clients.get( 0 );
 			List<? extends NotionDatabase> databases = context.getSession().getOrFetch( NotionDatabase.class );
 			List<NotionDatabaseRow> list = new ArrayList<>();
-			for ( NotionClient client : clients ) {
-				for ( NotionDatabase database : databases ) {
-					for ( JsonNode node : client.queryDatabase( database.getId() ) ) {
-						list.add( NotionDatabaseRow.fromJson( node, database.getId() ) );
-					}
+			for ( NotionDatabase database : databases ) {
+				for ( JsonNode node : client.queryDatabase( database.getId() ) ) {
+					list.add( NotionDatabaseRow.fromJson( node, database.getId() ) );
 				}
 			}
 			return list;
