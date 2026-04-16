@@ -8,9 +8,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+
+import com.blazebit.query.connector.base.RetryableHttpClient;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,12 +28,12 @@ public class GitlabGraphQlClient {
 	private static final ObjectMapper MAPPER = ObjectMappers.getInstance();
 	private static final int DEFAULT_PAGE_SIZE = 100; // GitLab's default pagination size
 
-	private final HttpClient httpClient;
+	private final RetryableHttpClient httpClient;
 	private final String gitlabApiUrl;
 	private final String authToken;
 
 	public GitlabGraphQlClient(String host, String gitlabToken) {
-		this.httpClient = HttpClient.newHttpClient();
+		this.httpClient = RetryableHttpClient.builder().build();
 		this.gitlabApiUrl = host + "/api/graphql";
 		this.authToken = gitlabToken;
 	}
