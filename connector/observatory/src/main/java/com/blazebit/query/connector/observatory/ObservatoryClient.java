@@ -8,9 +8,10 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+
+import com.blazebit.query.connector.base.RetryableHttpClient;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
@@ -26,7 +27,7 @@ public class ObservatoryClient {
 
 	private final String host;
 	private final String baseUrl;
-	private final HttpClient httpClient;
+	private final RetryableHttpClient httpClient;
 
 	public ObservatoryClient(String host) {
 		this(host, "https://observatory-api.mdn.mozilla.net");
@@ -35,8 +36,9 @@ public class ObservatoryClient {
 	public ObservatoryClient(String host, String baseUrl) {
 		this.host = host;
 		this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-		this.httpClient = HttpClient.newBuilder()
+		this.httpClient = RetryableHttpClient.builder()
 				.connectTimeout(Duration.ofSeconds(30))
+				.requestTimeout(Duration.ofSeconds(60))
 				.build();
 	}
 
@@ -65,7 +67,6 @@ public class ObservatoryClient {
 
 		HttpRequest httpRequest = HttpRequest.newBuilder()
 				.uri(uri)
-				.timeout(Duration.ofSeconds(60))
 				.header("Accept", "application/json")
 				.POST(HttpRequest.BodyPublishers.noBody())
 				.build();
