@@ -11,9 +11,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+
+import com.blazebit.query.connector.base.RetryableHttpClient;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class NotionClient {
 	private static final int PAGE_SIZE = 100;
 
 	private final String apiToken;
-	private final HttpClient httpClient;
+	private final RetryableHttpClient httpClient;
 	private final ObjectMapper objectMapper;
 
 	/**
@@ -59,8 +60,18 @@ public class NotionClient {
 	 * @param apiToken a valid Notion internal integration token (starts with {@code secret_})
 	 */
 	public NotionClient(String apiToken) {
+		this( apiToken, RetryableHttpClient.builder().build() );
+	}
+
+	/**
+	 * Creates a new {@link NotionClient} with a shared {@link RetryableHttpClient}.
+	 *
+	 * @param apiToken a valid Notion internal integration token (starts with {@code secret_})
+	 * @param httpClient the HTTP client to use for API requests
+	 */
+	public NotionClient(String apiToken, RetryableHttpClient httpClient) {
 		this.apiToken = apiToken;
-		this.httpClient = HttpClient.newHttpClient();
+		this.httpClient = httpClient;
 		this.objectMapper = new ObjectMapper();
 	}
 
