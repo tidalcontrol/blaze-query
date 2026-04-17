@@ -33,7 +33,11 @@ public class GitlabGraphQlClient {
 	private final String authToken;
 
 	public GitlabGraphQlClient(String host, String gitlabToken) {
-		this.httpClient = RetryableHttpClient.builder().build();
+		this( host, gitlabToken, RetryableHttpClient.builder().build() );
+	}
+
+	public GitlabGraphQlClient(String host, String gitlabToken, RetryableHttpClient httpClient) {
+		this.httpClient = httpClient;
 		this.gitlabApiUrl = host + "/api/graphql";
 		this.authToken = gitlabToken;
 	}

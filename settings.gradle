@@ -85,8 +85,6 @@ include(':blaze-query-connector-google-gcp-dns')
 
 include(':blaze-query-connector-datadog')
 
-include(':blaze-query-connector-notion')
-
 include(':blaze-query-connector-observatory')
 
 project(":blaze-query-core").projectDir = file('core')
@@ -152,7 +150,6 @@ project(":blaze-query-connector-google-gcp-compute").projectDir = file('connecto
 project(":blaze-query-connector-google-gcp-iam").projectDir = file('connector/google/gcp/iam')
 project(":blaze-query-connector-google-gcp-storage").projectDir = file('connector/google/gcp/storage')
 project(":blaze-query-connector-datadog").projectDir = file('connector/datadog')
-project(":blaze-query-connector-notion").projectDir = file('connector/notion')
 project(":blaze-query-connector-google-gcp-sql").projectDir = file('connector/google/gcp/sql')
 project(":blaze-query-connector-google-gcp-container").projectDir = file('connector/google/gcp/container')
 project(":blaze-query-connector-google-gcp-kms").projectDir = file('connector/google/gcp/kms')

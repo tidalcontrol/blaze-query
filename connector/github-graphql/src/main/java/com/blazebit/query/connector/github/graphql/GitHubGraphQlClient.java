@@ -37,11 +37,19 @@ public class GitHubGraphQlClient {
 	private final String endpoint;
 
 	public GitHubGraphQlClient(String authToken) {
-		this(authToken, GITHUB_GRAPHQL_ENDPOINT);
+		this( authToken, GITHUB_GRAPHQL_ENDPOINT );
+	}
+
+	public GitHubGraphQlClient(String authToken, RetryableHttpClient httpClient) {
+		this( authToken, GITHUB_GRAPHQL_ENDPOINT, httpClient );
 	}
 
 	GitHubGraphQlClient(String authToken, String endpoint) {
-		this.httpClient = RetryableHttpClient.builder().build();
+		this( authToken, endpoint, RetryableHttpClient.builder().build() );
+	}
+
+	GitHubGraphQlClient(String authToken, String endpoint, RetryableHttpClient httpClient) {
+		this.httpClient = httpClient;
 		this.endpoint = endpoint;
 		this.authToken = authToken;
 	}

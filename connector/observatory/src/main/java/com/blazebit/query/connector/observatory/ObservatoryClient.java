@@ -30,16 +30,20 @@ public class ObservatoryClient {
 	private final RetryableHttpClient httpClient;
 
 	public ObservatoryClient(String host) {
-		this(host, "https://observatory-api.mdn.mozilla.net");
+		this( host, "https://observatory-api.mdn.mozilla.net" );
 	}
 
 	public ObservatoryClient(String host, String baseUrl) {
+		this( host, baseUrl, RetryableHttpClient.builder()
+				.connectTimeout( Duration.ofSeconds( 30 ) )
+				.requestTimeout( Duration.ofSeconds( 60 ) )
+				.build() );
+	}
+
+	public ObservatoryClient(String host, String baseUrl, RetryableHttpClient httpClient) {
 		this.host = host;
-		this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-		this.httpClient = RetryableHttpClient.builder()
-				.connectTimeout(Duration.ofSeconds(30))
-				.requestTimeout(Duration.ofSeconds(60))
-				.build();
+		this.baseUrl = baseUrl.endsWith( "/" ) ? baseUrl.substring( 0, baseUrl.length() - 1 ) : baseUrl;
+		this.httpClient = httpClient;
 	}
 
 	public String getHost() {
