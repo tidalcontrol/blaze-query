@@ -87,6 +87,7 @@ include(':blaze-query-connector-datadog')
 
 include(':blaze-query-connector-vercel')
 include(':blaze-query-connector-vercel-jersey3')
+include(':blaze-query-connector-notion')
 
 include(':blaze-query-connector-observatory')
 
@@ -155,6 +156,7 @@ project(":blaze-query-connector-google-gcp-storage").projectDir = file('connecto
 project(":blaze-query-connector-datadog").projectDir = file('connector/datadog')
 project(":blaze-query-connector-vercel").projectDir = file('connector/vercel')
 project(":blaze-query-connector-vercel-jersey3").projectDir = file('connector/vercel/jersey3')
+project(":blaze-query-connector-notion").projectDir = file('connector/notion')
 project(":blaze-query-connector-google-gcp-sql").projectDir = file('connector/google/gcp/sql')
 project(":blaze-query-connector-google-gcp-container").projectDir = file('connector/google/gcp/container')
 project(":blaze-query-connector-google-gcp-kms").projectDir = file('connector/google/gcp/kms')
