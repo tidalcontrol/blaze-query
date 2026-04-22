@@ -193,6 +193,20 @@ import com.blazebit.query.connector.datadog.DatadogSecurityMonitoringRule;
 import com.blazebit.query.connector.datadog.DatadogSecuritySignal;
 import com.blazebit.query.connector.datadog.DatadogSyntheticsTest;
 import com.blazebit.query.connector.datadog.DatadogUser;
+import com.blazebit.query.connector.vercel.AccessGroup;
+import com.blazebit.query.connector.vercel.AccessGroupMember;
+import com.blazebit.query.connector.vercel.AuthToken;
+import com.blazebit.query.connector.vercel.Certificate;
+import com.blazebit.query.connector.vercel.Deployment;
+import com.blazebit.query.connector.vercel.Domain;
+import com.blazebit.query.connector.vercel.EnvironmentVariable;
+import com.blazebit.query.connector.vercel.FirewallConfig;
+import com.blazebit.query.connector.vercel.IntegrationConfiguration;
+import com.blazebit.query.connector.vercel.LogDrain;
+import com.blazebit.query.connector.vercel.ProjectMember;
+import com.blazebit.query.connector.vercel.Team;
+import com.blazebit.query.connector.vercel.TeamMember;
+import com.blazebit.query.connector.vercel.Webhook;
 import com.blazebit.query.connector.notion.NotionBlock;
 import com.blazebit.query.connector.notion.NotionComment;
 import com.blazebit.query.connector.notion.NotionDatabase;
@@ -296,6 +310,9 @@ public class Main {
 	private static final String DATADOG_APP_KEY = "";
 	private static final String DATADOG_SITE = "datadoghq.eu";
 
+	private static final String VERCEL_TOKEN = "";
+	private static final String VERCEL_TEAM_ID = "";
+
 	private static final String NOTION_API_TOKEN = "";
 
 	private Main() {
@@ -331,6 +348,7 @@ public class Main {
 			queryContextBuilder.setProperty( EntityViewConnectorConfig.ENTITY_VIEW_MANAGER.getPropertyName(), evm );
 //			queryContextBuilder.setProperty( ObservatoryConnectorConfig.OBSERVATORY_CLIENT.getPropertyName(), createObservatoryClient());
 			queryContextBuilder.setProperty( DatadogConnectorConfig.DATADOG_API_CLIENT.getPropertyName(), createDatadogApiClient());
+//			queryContextBuilder.setProperty( VercelConnectorConfig.API_CLIENT.getPropertyName(), new VercelApiClient( VERCEL_TOKEN, VERCEL_TEAM_ID ) );
 //			queryContextBuilder.setProperty( NotionConnectorConfig.NOTION_CLIENT.getPropertyName(), new NotionClient( NOTION_API_TOKEN ) );
 //			queryContextBuilder.setProperty( GitlabConnectorConfig.GITLAB_API.getPropertyName(), createGitlabApi());
 //			queryContextBuilder.setProperty( GitlabGraphQlConnectorConfig.GITLAB_GRAPHQL_CLIENT.getPropertyName(), createGitlabGraphQLClient());
@@ -587,6 +605,23 @@ public class Main {
 			queryContextBuilder.registerSchemaObjectAlias( DatadogMonitorDowntime.class, "DatadogMonitorDowntime" );
 			queryContextBuilder.registerSchemaObjectAlias( DatadogPermission.class, "DatadogPermission" );
 
+			// Vercel
+			queryContextBuilder.registerSchemaObjectAlias( AuthToken.class, "VercelAuthToken" );
+			queryContextBuilder.registerSchemaObjectAlias( Team.class, "VercelTeam" );
+			queryContextBuilder.registerSchemaObjectAlias( TeamMember.class, "VercelTeamMember" );
+			queryContextBuilder.registerSchemaObjectAlias( AccessGroup.class, "VercelAccessGroup" );
+			queryContextBuilder.registerSchemaObjectAlias( Webhook.class, "VercelWebhook" );
+			queryContextBuilder.registerSchemaObjectAlias( com.blazebit.query.connector.vercel.Project.class, "VercelProject" );
+			queryContextBuilder.registerSchemaObjectAlias( EnvironmentVariable.class, "VercelEnvVar" );
+			queryContextBuilder.registerSchemaObjectAlias( LogDrain.class, "VercelLogDrain" );
+			queryContextBuilder.registerSchemaObjectAlias( FirewallConfig.class, "VercelFirewallConfig" );
+			queryContextBuilder.registerSchemaObjectAlias( IntegrationConfiguration.class, "VercelIntegration" );
+			queryContextBuilder.registerSchemaObjectAlias( Deployment.class, "VercelDeployment" );
+			queryContextBuilder.registerSchemaObjectAlias( Domain.class, "VercelDomain" );
+			queryContextBuilder.registerSchemaObjectAlias( ProjectMember.class, "VercelProjectMember" );
+			queryContextBuilder.registerSchemaObjectAlias( Certificate.class, "VercelCertificate" );
+			queryContextBuilder.registerSchemaObjectAlias( AccessGroupMember.class, "VercelAccessGroupMember" );
+
 			// Notion
 			queryContextBuilder.registerSchemaObjectAlias( NotionWorkspace.class, "NotionWorkspace" );
 			queryContextBuilder.registerSchemaObjectAlias( NotionUser.class, "NotionUser" );
@@ -616,6 +651,7 @@ public class Main {
 //					testGcp( session );
 //					testGoogleWorkspace( session );
 					testDatadog( session );
+//					testVercel( session );
 //					testNotion( session );
 //					testAws( session );
 //					testGitlab( session );
@@ -2017,6 +2053,216 @@ public class Main {
 		List<Object[]> permissionRestrictedResult = permissionRestrictedQuery.getResultList();
 		System.out.println( "Datadog Permissions - restricted" );
 		print( permissionRestrictedResult );
+	}
+
+	private static void testVercel(QuerySession session) {
+		// Auth Tokens: all tokens with type and last-active timestamp
+		TypedQuery<Object[]> tokenQuery = session.createQuery(
+				"SELECT t.id, t.name, t.type, t.origin, t.activeAt, t.expiresAt FROM VercelAuthToken t" );
+		List<Object[]> tokenResult = tokenQuery.getResultList();
+		System.out.println( "Vercel Auth Tokens" );
+		print( tokenResult );
+
+		// Auth Tokens: tokens never used (activeAt is null)
+		TypedQuery<Object[]> unusedTokenQuery = session.createQuery(
+				"SELECT t.id, t.name, t.origin, t.createdAt FROM VercelAuthToken t WHERE t.activeAt IS NULL" );
+		List<Object[]> unusedTokenResult = unusedTokenQuery.getResultList();
+		System.out.println( "Vercel Auth Tokens - never used" );
+		print( unusedTokenResult );
+
+		// Teams: security settings overview
+		TypedQuery<Object[]> teamQuery = session.createQuery(
+				"""
+				SELECT t.id, t.slug, t.name,
+					t.saml.enforced,
+					t.sensitiveEnvironmentVariablePolicy,
+					t.hideIpAddresses
+				FROM VercelTeam t
+				""" );
+		List<Object[]> teamResult = teamQuery.getResultList();
+		System.out.println( "Vercel Teams" );
+		print( teamResult );
+
+		// Teams: SAML not enforced — compliance risk
+		TypedQuery<Object[]> noSamlQuery = session.createQuery(
+				"SELECT t.id, t.slug FROM VercelTeam t WHERE t.saml.enforced = false OR t.saml IS NULL" );
+		List<Object[]> noSamlResult = noSamlQuery.getResultList();
+		System.out.println( "Vercel Teams - SAML not enforced" );
+		print( noSamlResult );
+
+		// Team Members: full roster with role and join origin
+		TypedQuery<Object[]> memberQuery = session.createQuery(
+				"SELECT m.uid, m.email, m.role, m.confirmed, m.teamId, m.joinedFrom.origin FROM VercelTeamMember m" );
+		List<Object[]> memberResult = memberQuery.getResultList();
+		System.out.println( "Vercel Team Members" );
+		print( memberResult );
+
+		// Team Members: unconfirmed invites (potential stale access)
+		TypedQuery<Object[]> unconfirmedQuery = session.createQuery(
+				"SELECT m.uid, m.email, m.teamId, m.createdAt FROM VercelTeamMember m WHERE m.confirmed = false" );
+		List<Object[]> unconfirmedResult = unconfirmedQuery.getResultList();
+		System.out.println( "Vercel Team Members - unconfirmed" );
+		print( unconfirmedResult );
+
+		// Team Members: owners
+		TypedQuery<Object[]> ownerQuery = session.createQuery(
+				"SELECT m.uid, m.email, m.teamId FROM VercelTeamMember m WHERE m.role = 'OWNER'" );
+		List<Object[]> ownerResult = ownerQuery.getResultList();
+		System.out.println( "Vercel Team Members - owners" );
+		print( ownerResult );
+
+		// Access Groups: all groups with member/project counts and SCIM flag
+		TypedQuery<Object[]> groupQuery = session.createQuery(
+				"SELECT g.accessGroupId, g.name, g.membersCount, g.projectsCount, g.isDsyncManaged FROM VercelAccessGroup g" );
+		List<Object[]> groupResult = groupQuery.getResultList();
+		System.out.println( "Vercel Access Groups" );
+		print( groupResult );
+
+		// Access Groups: manually managed (not SCIM) — higher drift risk
+		TypedQuery<Object[]> manualGroupQuery = session.createQuery(
+				"SELECT g.accessGroupId, g.name FROM VercelAccessGroup g WHERE g.isDsyncManaged = false OR g.isDsyncManaged IS NULL" );
+		List<Object[]> manualGroupResult = manualGroupQuery.getResultList();
+		System.out.println( "Vercel Access Groups - not managed by directory sync" );
+		print( manualGroupResult );
+
+		// Webhooks: full list with event subscriptions
+		TypedQuery<Object[]> webhookQuery = session.createQuery(
+				"SELECT w.id, w.url, w.ownerId, w.createdAt FROM VercelWebhook w" );
+		List<Object[]> webhookResult = webhookQuery.getResultList();
+		System.out.println( "Vercel Webhooks" );
+		print( webhookResult );
+
+		// Webhooks: team-wide (no project scoping)
+		TypedQuery<Object[]> teamWebhookQuery = session.createQuery(
+				"SELECT w.id, w.url FROM VercelWebhook w WHERE CARDINALITY(w.projectIds) = 0" );
+		List<Object[]> teamWebhookResult = teamWebhookQuery.getResultList();
+		System.out.println( "Vercel Webhooks - team-wide" );
+		print( teamWebhookResult );
+
+		// Projects: deployment protection overview
+		TypedQuery<Object[]> projectQuery = session.createQuery(
+				"""
+				SELECT p.id, p.name, p.framework,
+					p.passwordProtection.deploymentType,
+					p.ssoProtection.deploymentType,
+					p.autoExposeSystemEnvs
+				FROM VercelProject p
+				""" );
+		List<Object[]> projectResult = projectQuery.getResultList();
+		System.out.println( "Vercel Projects" );
+		print( projectResult );
+
+		// Projects: no password or SSO protection (publicly reachable deployments)
+		TypedQuery<Object[]> unprotectedQuery = session.createQuery(
+				"SELECT p.id, p.name FROM VercelProject p WHERE p.passwordProtection IS NULL AND p.ssoProtection IS NULL" );
+		List<Object[]> unprotectedResult = unprotectedQuery.getResultList();
+		System.out.println( "Vercel Projects - no deployment protection" );
+		print( unprotectedResult );
+
+		// Projects: auto-exposing system environment variables
+		TypedQuery<Object[]> autoExposeQuery = session.createQuery(
+				"SELECT p.id, p.name FROM VercelProject p WHERE p.autoExposeSystemEnvs = true" );
+		List<Object[]> autoExposeResult = autoExposeQuery.getResultList();
+		System.out.println( "Vercel Projects - auto-exposing system env vars" );
+		print( autoExposeResult );
+
+		// Environment Variables: plain-text variables (potential secret exposure)
+		TypedQuery<Object[]> plainEnvQuery = session.createQuery(
+				"SELECT e.id, e.key, e.projectId FROM VercelEnvVar e WHERE e.type = 'plain'" );
+		List<Object[]> plainEnvResult = plainEnvQuery.getResultList();
+		System.out.println( "Vercel Env Vars - plain-text (potential secret exposure)" );
+		print( plainEnvResult );
+
+		// Environment Variables: scoped to exactly one target (often production-only secrets)
+		TypedQuery<Object[]> singleTargetEnvQuery = session.createQuery(
+				"SELECT e.id, e.key, e.type, e.projectId FROM VercelEnvVar e WHERE CARDINALITY(e.target) = 1" );
+		List<Object[]> singleTargetEnvResult = singleTargetEnvQuery.getResultList();
+		System.out.println( "Vercel Env Vars - single-target (production-only secrets)" );
+		print( singleTargetEnvResult );
+
+		// Log Drains: all drains
+		TypedQuery<Object[]> logDrainQuery = session.createQuery(
+				"SELECT d.id, d.name, d.url, d.deliveryFormat FROM VercelLogDrain d" );
+		List<Object[]> logDrainResult = logDrainQuery.getResultList();
+		System.out.println( "Vercel Log Drains" );
+		print( logDrainResult );
+
+		// Log Drains: team-wide drains (not scoped to a project)
+		TypedQuery<Object[]> teamWideDrainQuery = session.createQuery(
+				"SELECT d.id, d.name FROM VercelLogDrain d WHERE CARDINALITY(d.projectIds) = 0" );
+		List<Object[]> teamWideDrainResult = teamWideDrainQuery.getResultList();
+		System.out.println( "Vercel Log Drains - team-wide" );
+		print( teamWideDrainResult );
+
+		// Firewall: projects with WAF disabled
+		TypedQuery<Object[]> fwDisabledQuery = session.createQuery(
+				"SELECT f.id, f.projectKey, f.projectId FROM VercelFirewallConfig f WHERE f.firewallEnabled = false OR f.firewallEnabled IS NULL" );
+		List<Object[]> fwDisabledResult = fwDisabledQuery.getResultList();
+		System.out.println( "Vercel Firewall - WAF disabled" );
+		print( fwDisabledResult );
+
+		// Firewall: projects with bot protection disabled
+		TypedQuery<Object[]> botDisabledQuery = session.createQuery(
+				"SELECT f.id, f.projectKey FROM VercelFirewallConfig f WHERE f.botIdEnabled = false OR f.botIdEnabled IS NULL" );
+		List<Object[]> botDisabledResult = botDisabledQuery.getResultList();
+		System.out.println( "Vercel Firewall - bot protection disabled" );
+		print( botDisabledResult );
+
+		// Integrations: suspended or disabled configurations
+		TypedQuery<Object[]> suspendedIntQuery = session.createQuery(
+				"SELECT i.id, i.slug, i.status, i.disabledAt FROM VercelIntegration i WHERE i.status = 'suspended' OR i.disabledAt IS NOT NULL" );
+		List<Object[]> suspendedIntResult = suspendedIntQuery.getResultList();
+		System.out.println( "Vercel Integrations - suspended or disabled" );
+		print( suspendedIntResult );
+
+		// Deployments: non-git production deployments (bypass CI/CD review controls)
+		TypedQuery<Object[]> nonGitProdQuery = session.createQuery(
+				"SELECT d.uid, d.name, d.source, d.creator.email FROM VercelDeployment d WHERE d.target = 'production' AND d.source <> 'git'" );
+		List<Object[]> nonGitProdResult = nonGitProdQuery.getResultList();
+		System.out.println( "Vercel Deployments - non-git production (bypass CI/CD)" );
+		print( nonGitProdResult );
+
+		// Deployments: failed deployments
+		TypedQuery<Object[]> failedDeplQuery = session.createQuery(
+				"SELECT d.uid, d.name, d.state, d.errorCode FROM VercelDeployment d WHERE d.state = 'ERROR'" );
+		List<Object[]> failedDeplResult = failedDeplQuery.getResultList();
+		System.out.println( "Vercel Deployments - failed" );
+		print( failedDeplResult );
+
+		// Domains: unverified domains (domain takeover risk)
+		TypedQuery<Object[]> unverifiedDomainQuery = session.createQuery(
+				"SELECT d.id, d.name FROM VercelDomain d WHERE d.verified = false OR d.verified IS NULL" );
+		List<Object[]> unverifiedDomainResult = unverifiedDomainQuery.getResultList();
+		System.out.println( "Vercel Domains - unverified (takeover risk)" );
+		print( unverifiedDomainResult );
+
+		// Domains: auto-renew disabled with expiry set (hijack risk)
+		TypedQuery<Object[]> noRenewDomainQuery = session.createQuery(
+				"SELECT d.id, d.name, d.expiresAt FROM VercelDomain d WHERE d.renew = false AND d.expiresAt IS NOT NULL" );
+		List<Object[]> noRenewDomainResult = noRenewDomainQuery.getResultList();
+		System.out.println( "Vercel Domains - no auto-renew with expiry (hijack risk)" );
+		print( noRenewDomainResult );
+
+		// Project Members: elevated project role vs team role (privilege escalation)
+		TypedQuery<Object[]> elevatedProjMemberQuery = session.createQuery(
+				"SELECT m.uid, m.email, m.role, m.teamRole, m.projectId FROM VercelProjectMember m WHERE m.role = 'ADMIN' AND m.teamRole <> 'OWNER'" );
+		List<Object[]> elevatedProjMemberResult = elevatedProjMemberQuery.getResultList();
+		System.out.println( "Vercel Project Members - elevated project role (privilege escalation)" );
+		print( elevatedProjMemberResult );
+
+		// Certificates: without auto-renew (expiry risk)
+		TypedQuery<Object[]> noRenewCertQuery = session.createQuery(
+				"SELECT c.id FROM VercelCertificate c WHERE c.autoRenew = false OR c.autoRenew IS NULL" );
+		List<Object[]> noRenewCertResult = noRenewCertQuery.getResultList();
+		System.out.println( "Vercel Certificates - no auto-renew (expiry risk)" );
+		print( noRenewCertResult );
+
+		// Access Group Members: admin members (elevated access group role)
+		TypedQuery<Object[]> agAdminQuery = session.createQuery(
+				"SELECT m.uid, m.email, m.role, m.accessGroupId FROM VercelAccessGroupMember m WHERE m.role = 'ADMIN'" );
+		List<Object[]> agAdminResult = agAdminQuery.getResultList();
+		System.out.println( "Vercel Access Group Members - admins" );
+		print( agAdminResult );
 	}
 
 	private static void testNotion(QuerySession session) {
