@@ -21,7 +21,7 @@ public final class ScalewayConnectorConfig {
 	 * organization's API secret key, organization ID, and the list of zones to query.
 	 */
 	public static final DataFetcherConfig<ScalewayClient> SCALEWAY_CLIENT =
-			DataFetcherConfig.forPropertyName( "scaewayClient" );
+			DataFetcherConfig.forPropertyName( "scalewayClient" );
 
 	private ScalewayConnectorConfig() {
 	}
