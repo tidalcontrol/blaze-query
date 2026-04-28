@@ -9,9 +9,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+
+import com.blazebit.query.connector.base.RetryableHttpClient;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,19 +32,24 @@ public class GitHubGraphQlClient {
 	private static final ObjectMapper MAPPER = ObjectMappers.getInstance();
 	private static final int DEFAULT_PAGE_SIZE = 100; // Must be within the range of 1-100
 	private static final String GITHUB_GRAPHQL_ENDPOINT = "https://api.github.com/graphql";
-	private static final int MAX_RETRIES = 3;
-	private static final long RETRY_BASE_DELAY_MS = 1000L;
-
-	private final HttpClient httpClient;
+	private final RetryableHttpClient httpClient;
 	private final String authToken;
 	private final String endpoint;
 
 	public GitHubGraphQlClient(String authToken) {
-		this(authToken, GITHUB_GRAPHQL_ENDPOINT);
+		this( authToken, GITHUB_GRAPHQL_ENDPOINT );
+	}
+
+	public GitHubGraphQlClient(String authToken, RetryableHttpClient httpClient) {
+		this( authToken, GITHUB_GRAPHQL_ENDPOINT, httpClient );
 	}
 
 	GitHubGraphQlClient(String authToken, String endpoint) {
-		this.httpClient = HttpClient.newHttpClient();
+		this( authToken, endpoint, RetryableHttpClient.builder().build() );
+	}
+
+	GitHubGraphQlClient(String authToken, String endpoint, RetryableHttpClient httpClient) {
+		this.httpClient = httpClient;
 		this.endpoint = endpoint;
 		this.authToken = authToken;
 	}
@@ -458,7 +464,10 @@ public class GitHubGraphQlClient {
 						.POST(HttpRequest.BodyPublishers.ofString(requestBody))
 						.build();
 
-				HttpResponse<String> response = sendWithRetries( request, rootNode );
+				HttpResponse<String> response = httpClient.send( request, HttpResponse.BodyHandlers.ofString() );
+				if ( response.statusCode() != 200 ) {
+					throw new RuntimeException( "GitHub API error " + response.statusCode() + ": " + response.body() );
+				}
 
 				JsonNode jsonResponse = MAPPER.readTree(response.body());
 
@@ -501,46 +510,16 @@ public class GitHubGraphQlClient {
 				cursor = pageInfo.path("endCursor").asText(null);
 				hasNextPage = pageInfo.path("hasNextPage").asBoolean(false);
 			}
-			catch (IOException e) {
+			catch (IOException | InterruptedException e) {
+				if ( e instanceof InterruptedException ) {
+					Thread.currentThread().interrupt();
+				}
 				throw new RuntimeException("Failed to fetch " + rootNode + " from GitHub GraphQL API", e);
 			}
 		}
 		while (hasNextPage && cursor != null);
 
 		return allResults;
-	}
-
-	private HttpResponse<String> sendWithRetries(HttpRequest request, String rootNode) throws IOException {
-		HttpResponse<String> response = null;
-		try {
-			for ( int attempt = 1; attempt <= MAX_RETRIES; attempt++ ) {
-				response = httpClient.send( request, HttpResponse.BodyHandlers.ofString() );
-				if ( !isRetryableStatus( response.statusCode() ) ) {
-					break;
-				}
-				LOG.log( Level.WARNING, "GitHub API returned {0}, retrying (attempt {1}/{2})",
-						new Object[]{ response.statusCode(), attempt, MAX_RETRIES } );
-				if ( attempt < MAX_RETRIES ) {
-					Thread.sleep( RETRY_BASE_DELAY_MS * attempt );
-				}
-			}
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new RuntimeException( "Interrupted during GitHub API request for " + rootNode, e );
-		}
-		if ( response != null && isRetryableStatus( response.statusCode() ) ) {
-			throw new RuntimeException( "GitHub API returned " + response.statusCode()
-					+ " after " + MAX_RETRIES + " attempts: " + response.body() );
-		}
-		if ( response.statusCode() != 200 ) {
-			throw new RuntimeException( "GitHub API error: " + response.body() );
-		}
-		return response;
-	}
-
-	private static boolean isRetryableStatus(int statusCode) {
-		return statusCode >= 500 || statusCode == 429;
 	}
 
 	private String createJsonRequest(String query, Map<String, Object> variables) {
