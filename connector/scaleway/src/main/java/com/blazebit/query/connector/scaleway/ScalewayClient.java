@@ -497,7 +497,10 @@ public class ScalewayClient implements Serializable {
 		int page = 1;
 		while ( true ) {
 			String url = baseUrl + "/" + zone + path + "?per_page=" + PAGE_SIZE + "&page=" + page;
-			JsonNode response = get( url );
+			JsonNode response = getOptional( url );
+			if ( response == null ) {
+				break;
+			}
 			JsonNode items = response.path( arrayField );
 			if ( !items.isArray() || items.isEmpty() ) {
 				break;
@@ -521,7 +524,10 @@ public class ScalewayClient implements Serializable {
 			String separator = path.contains( "?" ) ? "&" : "?";
 			String url = BASE_URL + serviceBase + "/" + region + path
 					+ separator + "page_size=" + PAGE_SIZE + "&page=" + page;
-			JsonNode response = get( url );
+			JsonNode response = getOptional( url );
+			if ( response == null ) {
+				break;
+			}
 			JsonNode items = response.path( arrayField );
 			if ( !items.isArray() || items.isEmpty() ) {
 				break;
@@ -560,7 +566,7 @@ public class ScalewayClient implements Serializable {
 				.GET()
 				.build();
 		HttpResponse<String> response = httpClient().send( request, HttpResponse.BodyHandlers.ofString() );
-		if ( response.statusCode() == 404 ) {
+		if ( response.statusCode() == 404 || response.statusCode() == 501 ) {
 			return null;
 		}
 		if ( response.statusCode() < 200 || response.statusCode() >= 300 ) {
