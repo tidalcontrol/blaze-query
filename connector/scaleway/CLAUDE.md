@@ -606,7 +606,7 @@ on images. Images with empty `tags` are untagged/dangling.
 
 #### Observability (Cockpit)
 
-**`ScalewayCockpitAlertManager`** (one record per region)
+**`ScalewayCockpitAlertManager`** (one record per region × project pair)
 | Field | Type | Notes |
 |---|---|---|
 | `region` | String | |
@@ -614,9 +614,15 @@ on images. Images with empty `tags` are untagged/dangling.
 | `managedAlertsEnabled` | boolean | Scaleway managed alert rules active |
 | `contactPointCount` | int | number of notification channels configured |
 
-Security focus: `WHERE managedAlertsEnabled = true AND contactPointCount = 0` finds regions
-where alerts are configured but have nowhere to send notifications — a silent failure.
-`WHERE managedAlertsEnabled = false` finds regions with no alerting at all.
+Cockpit alert managers are per-project, not per-region — the connector enumerates all
+projects in the configured organization (via `/account/v3/projects`) and emits one row
+per (region, project) pair. When the API returns 404 for a (region, project) pair (no
+alert manager configured), a row with `managedAlertsEnabled = false` and
+`contactPointCount = 0` is emitted so unconfigured projects show as failing.
+
+Security focus: `WHERE managedAlertsEnabled = true AND contactPointCount = 0` finds
+projects where alerts are configured but have nowhere to send notifications — a silent
+failure. `WHERE managedAlertsEnabled = false` finds projects with no alerting at all.
 
 ---
 
@@ -697,10 +703,11 @@ use, extend `ScalewayClient.listAuditEvents()` to accept a `since` parameter.
 
 **Cockpit API shape**
 
-The Cockpit alertmanager endpoint returns a single JSON object (not paged). Contact points
-return a `total_count` integer. If the Cockpit service is not enabled for a region, the
-API returns a 404 which the client propagates as an `IOException`. Wrap the fetcher call
-in a try-catch if you want graceful degradation.
+The Cockpit alert-manager and contact-points endpoints are per-project: both require a
+`project_id` query parameter (a valid project UUID) and return a 404 when no resource is
+configured for that (region, project) pair. The client uses an internal `getOptional`
+helper that returns `null` on 404, and the alert-manager fetcher emits a row with
+`managedAlertsEnabled = false` for missing pairs rather than swallowing them.
 
 **No SDK — raw HTTP**
 

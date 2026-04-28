@@ -398,19 +398,56 @@ public class ScalewayClient implements Serializable {
 	}
 
 	// -------------------------------------------------------------------------
-	// Cockpit API (region-based)
+	// Account API (projects)
 	// -------------------------------------------------------------------------
 
-	/** Gets the Cockpit alert manager configuration for the given region. */
-	public JsonNode getCockpitAlertManager(String region) throws IOException, InterruptedException {
-		String url = BASE_URL + "/cockpit/v1/regions/" + region + "/alertmanager";
-		return get( url );
+	/** Lists all projects within the configured organization with full pagination. */
+	public List<JsonNode> listProjects() throws IOException, InterruptedException {
+		List<JsonNode> result = new ArrayList<>();
+		int page = 1;
+		while ( true ) {
+			String url = BASE_URL + "/account/v3/projects?organization_id=" + organizationId
+					+ "&page_size=" + PAGE_SIZE + "&page=" + page;
+			JsonNode response = get( url );
+			JsonNode items = response.path( "projects" );
+			if ( !items.isArray() || items.isEmpty() ) {
+				break;
+			}
+			for ( JsonNode item : items ) {
+				result.add( item );
+			}
+			if ( items.size() < PAGE_SIZE ) {
+				break;
+			}
+			page++;
+		}
+		return result;
 	}
 
-	/** Returns the number of contact points configured for the Cockpit in the given region. */
-	public int getCockpitContactPointCount(String region) throws IOException, InterruptedException {
-		String url = BASE_URL + "/cockpit/v1/regions/" + region + "/contact-points?page_size=1";
-		JsonNode response = get( url );
+	// -------------------------------------------------------------------------
+	// Cockpit API (region + project scoped)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Gets the Cockpit alert manager configuration for the given (region, project) pair.
+	 * Returns {@code null} when the API returns 404 (no alert manager configured for that pair).
+	 */
+	public JsonNode getCockpitAlertManager(String region, String projectId) throws IOException, InterruptedException {
+		String url = BASE_URL + "/cockpit/v1/regions/" + region + "/alert-manager?project_id=" + projectId;
+		return getOptional( url );
+	}
+
+	/**
+	 * Returns the number of contact points configured for Cockpit in the given (region, project) pair.
+	 * Returns 0 when the API returns 404.
+	 */
+	public int getCockpitContactPointCount(String region, String projectId) throws IOException, InterruptedException {
+		String url = BASE_URL + "/cockpit/v1/regions/" + region
+				+ "/alert-manager/contact-points?project_id=" + projectId + "&page_size=1";
+		JsonNode response = getOptional( url );
+		if ( response == null ) {
+			return 0;
+		}
 		return response.path( "total_count" ).asInt( 0 );
 	}
 
@@ -508,6 +545,24 @@ public class ScalewayClient implements Serializable {
 				.GET()
 				.build();
 		HttpResponse<String> response = httpClient().send( request, HttpResponse.BodyHandlers.ofString() );
+		if ( response.statusCode() < 200 || response.statusCode() >= 300 ) {
+			throw new IOException( "Scaleway API request failed [" + response.statusCode() + "]: "
+					+ url + " — " + response.body() );
+		}
+		return objectMapper().readTree( response.body() );
+	}
+
+	private JsonNode getOptional(String url) throws IOException, InterruptedException {
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri( URI.create( url ) )
+				.header( "X-Auth-Token", secretKey )
+				.header( "Accept", "application/json" )
+				.GET()
+				.build();
+		HttpResponse<String> response = httpClient().send( request, HttpResponse.BodyHandlers.ofString() );
+		if ( response.statusCode() == 404 ) {
+			return null;
+		}
 		if ( response.statusCode() < 200 || response.statusCode() >= 300 ) {
 			throw new IOException( "Scaleway API request failed [" + response.statusCode() + "]: "
 					+ url + " — " + response.body() );

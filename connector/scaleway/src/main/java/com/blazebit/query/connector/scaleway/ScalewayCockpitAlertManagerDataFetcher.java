@@ -35,18 +35,21 @@ public class ScalewayCockpitAlertManagerDataFetcher implements DataFetcher<Scale
 			List<ScalewayClient> clients = ScalewayConnectorConfig.SCALEWAY_CLIENT.getAll( context );
 			List<ScalewayCockpitAlertManager> result = new ArrayList<>();
 			for ( ScalewayClient client : clients ) {
-				for ( String region : client.regions() ) {
-					JsonNode alertManagerNode = client.getCockpitAlertManager( region );
-					if ( alertManagerNode == null || alertManagerNode.isMissingNode() ) {
+				List<String> regions = client.regions();
+				for ( JsonNode project : client.listProjects() ) {
+					String projectId = project.path( "id" ).asText( null );
+					if ( projectId == null || projectId.isEmpty() ) {
 						continue;
 					}
-					int contactPointCount = client.getCockpitContactPointCount( region );
-					String projectId = "";
-					JsonNode projNode = alertManagerNode.path( "project_id" );
-					if ( !projNode.isNull() && !projNode.isMissingNode() ) {
-						projectId = projNode.asText();
+					for ( String region : regions ) {
+						JsonNode alertManagerNode = client.getCockpitAlertManager( region, projectId );
+						if ( alertManagerNode == null || alertManagerNode.isMissingNode() ) {
+							result.add( new ScalewayCockpitAlertManager( region, projectId, false, 0 ) );
+							continue;
+						}
+						int contactPointCount = client.getCockpitContactPointCount( region, projectId );
+						result.add( ScalewayCockpitAlertManager.from( alertManagerNode, region, projectId, contactPointCount ) );
 					}
-					result.add( ScalewayCockpitAlertManager.from( alertManagerNode, region, projectId, contactPointCount ) );
 				}
 			}
 			return result;

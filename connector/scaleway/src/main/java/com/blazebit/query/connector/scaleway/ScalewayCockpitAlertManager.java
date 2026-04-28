@@ -22,22 +22,10 @@ public record ScalewayCockpitAlertManager(
 ) {
 
 	public static ScalewayCockpitAlertManager from(JsonNode alertManagerNode, String region, String projectId, int contactPointCount) {
-		boolean managedAlertsEnabled = alertManagerNode.path( "managed_alerts_enabled" ).asBoolean( false );
-
-		String resolvedProjectId = projectId;
-		if ( resolvedProjectId == null || resolvedProjectId.isEmpty() ) {
-			JsonNode projNode = alertManagerNode.path( "project_id" );
-			if ( !projNode.isNull() && !projNode.isMissingNode() ) {
-				resolvedProjectId = projNode.asText();
-			}
-			else {
-				resolvedProjectId = "";
-			}
-		}
-
+		boolean managedAlertsEnabled = alertManagerNode.path( "alert_manager_enabled" ).asBoolean( false );
 		return new ScalewayCockpitAlertManager(
 				region,
-				resolvedProjectId,
+				projectId,
 				managedAlertsEnabled,
 				contactPointCount
 		);
