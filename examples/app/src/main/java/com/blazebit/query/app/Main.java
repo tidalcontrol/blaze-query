@@ -239,7 +239,6 @@ import com.google.api.services.drive.DriveScopes;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.blazebit.query.connector.scaleway.ScalewayAuditEvent;
 import com.blazebit.query.connector.scaleway.ScalewayClient;
-import com.blazebit.query.connector.scaleway.ScalewayConnectorConfig;
 import com.blazebit.query.connector.scaleway.ScalewayIamApiKey;
 import com.blazebit.query.connector.scaleway.ScalewayIamApplication;
 import com.blazebit.query.connector.scaleway.ScalewayIamGroup;
