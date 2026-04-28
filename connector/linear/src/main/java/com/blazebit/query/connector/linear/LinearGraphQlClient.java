@@ -4,13 +4,13 @@
  */
 package com.blazebit.query.connector.linear;
 
+import com.blazebit.query.connector.base.RetryableHttpClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
@@ -31,8 +31,6 @@ public class LinearGraphQlClient {
 	private static final Logger LOG = Logger.getLogger( LinearGraphQlClient.class.getName() );
 	private static final String LINEAR_GRAPHQL_ENDPOINT = "https://api.linear.app/graphql";
 	private static final int DEFAULT_PAGE_SIZE = 50;
-	private static final int MAX_RETRIES = 3;
-	private static final long RETRY_BASE_DELAY_MS = 1000L;
 
 	static final ObjectMapper MAPPER;
 
@@ -41,18 +39,26 @@ public class LinearGraphQlClient {
 		MAPPER.registerModule( new JavaTimeModule() );
 	}
 
-	private final HttpClient httpClient;
+	private final RetryableHttpClient httpClient;
 	private final String apiKey;
 	private final String endpoint;
 
 	public LinearGraphQlClient(String apiKey) {
-		this( apiKey, LINEAR_GRAPHQL_ENDPOINT );
+		this( apiKey, LINEAR_GRAPHQL_ENDPOINT, RetryableHttpClient.builder().build() );
+	}
+
+	public LinearGraphQlClient(String apiKey, RetryableHttpClient httpClient) {
+		this( apiKey, LINEAR_GRAPHQL_ENDPOINT, httpClient );
 	}
 
 	LinearGraphQlClient(String apiKey, String endpoint) {
-		this.httpClient = HttpClient.newHttpClient();
+		this( apiKey, endpoint, RetryableHttpClient.builder().build() );
+	}
+
+	LinearGraphQlClient(String apiKey, String endpoint, RetryableHttpClient httpClient) {
 		this.apiKey = apiKey;
 		this.endpoint = endpoint;
+		this.httpClient = httpClient;
 	}
 
 	public List<LinearIssue> fetchIssues() {
@@ -299,7 +305,12 @@ public class LinearGraphQlClient {
 						.POST( HttpRequest.BodyPublishers.ofString( requestBody ) )
 						.build();
 
-				HttpResponse<String> response = sendWithRetries( request, rootNode );
+				HttpResponse<String> response = httpClient.send( request, HttpResponse.BodyHandlers.ofString() );
+
+				if ( response.statusCode() != 200 ) {
+					throw new RuntimeException( "Linear API error " + response.statusCode() + " for " + rootNode
+							+ ": " + response.body() );
+				}
 
 				JsonNode json = MAPPER.readTree( response.body() );
 
@@ -328,44 +339,14 @@ public class LinearGraphQlClient {
 			catch (IOException e) {
 				throw new RuntimeException( "Failed to fetch " + rootNode + " from Linear GraphQL API", e );
 			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new RuntimeException( "Interrupted while fetching " + rootNode + " from Linear GraphQL API", e );
+			}
 		}
 		while ( hasNextPage && cursor != null );
 
 		return allResults;
-	}
-
-	private HttpResponse<String> sendWithRetries(HttpRequest request, String rootNode) throws IOException {
-		HttpResponse<String> response = null;
-		try {
-			for ( int attempt = 1; attempt <= MAX_RETRIES; attempt++ ) {
-				response = httpClient.send( request, HttpResponse.BodyHandlers.ofString() );
-				if ( !isRetryable( response.statusCode() ) ) {
-					break;
-				}
-				LOG.log( Level.WARNING, "Linear API returned {0}, retrying (attempt {1}/{2})",
-						new Object[]{ response.statusCode(), attempt, MAX_RETRIES } );
-				if ( attempt < MAX_RETRIES ) {
-					Thread.sleep( RETRY_BASE_DELAY_MS * attempt );
-				}
-			}
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new RuntimeException( "Interrupted during Linear API request for " + rootNode, e );
-		}
-		if ( response != null && isRetryable( response.statusCode() ) ) {
-			throw new RuntimeException( "Linear API returned " + response.statusCode()
-					+ " after " + MAX_RETRIES + " attempts for " + rootNode );
-		}
-		if ( response.statusCode() != 200 ) {
-			throw new RuntimeException( "Linear API error " + response.statusCode() + " for " + rootNode
-					+ ": " + response.body() );
-		}
-		return response;
-	}
-
-	private static boolean isRetryable(int statusCode) {
-		return statusCode == 429 || statusCode >= 500;
 	}
 
 	private String buildRequestBody(String query, Map<String, Object> variables) {
