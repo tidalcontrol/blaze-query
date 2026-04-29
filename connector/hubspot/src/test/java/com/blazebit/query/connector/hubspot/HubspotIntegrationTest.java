@@ -7,6 +7,7 @@ package com.blazebit.query.connector.hubspot;
 import com.blazebit.query.QueryContext;
 import com.blazebit.query.TypeReference;
 import com.blazebit.query.impl.QueryContextBuilderImpl;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -28,9 +29,8 @@ class HubspotIntegrationTest {
 	@BeforeAll
 	static void setup() {
 		String token = System.getenv( "HUBSPOT_ACCESS_TOKEN" );
-		if ( token == null || token.isBlank() ) {
-			throw new IllegalStateException( "HUBSPOT_ACCESS_TOKEN environment variable not set" );
-		}
+		Assumptions.assumeTrue( token != null && !token.isBlank(),
+				"HUBSPOT_ACCESS_TOKEN not set — skipping live HubSpot tests" );
 		HubspotClient client = new HubspotClient( token );
 		var builder = new QueryContextBuilderImpl();
 		builder.registerSchemaProvider( new HubspotSchemaProvider() );
