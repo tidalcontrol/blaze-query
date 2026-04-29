@@ -203,8 +203,6 @@ import com.blazebit.query.connector.vercel.EnvironmentVariable;
 import com.blazebit.query.connector.vercel.FirewallConfig;
 import com.blazebit.query.connector.vercel.IntegrationConfiguration;
 import com.blazebit.query.connector.vercel.LogDrain;
-import com.blazebit.query.connector.vercel.ProjectMember;
-import com.blazebit.query.connector.vercel.Team;
 import com.blazebit.query.connector.vercel.TeamMember;
 import com.blazebit.query.connector.vercel.Webhook;
 import com.blazebit.query.connector.notion.NotionBlock;
@@ -649,7 +647,7 @@ public class Main {
 
 			// Vercel
 			queryContextBuilder.registerSchemaObjectAlias( AuthToken.class, "VercelAuthToken" );
-			queryContextBuilder.registerSchemaObjectAlias( Team.class, "VercelTeam" );
+			queryContextBuilder.registerSchemaObjectAlias( com.blazebit.query.connector.vercel.Team.class, "VercelTeam" );
 			queryContextBuilder.registerSchemaObjectAlias( TeamMember.class, "VercelTeamMember" );
 			queryContextBuilder.registerSchemaObjectAlias( AccessGroup.class, "VercelAccessGroup" );
 			queryContextBuilder.registerSchemaObjectAlias( Webhook.class, "VercelWebhook" );
@@ -660,7 +658,7 @@ public class Main {
 			queryContextBuilder.registerSchemaObjectAlias( IntegrationConfiguration.class, "VercelIntegration" );
 			queryContextBuilder.registerSchemaObjectAlias( Deployment.class, "VercelDeployment" );
 			queryContextBuilder.registerSchemaObjectAlias( Domain.class, "VercelDomain" );
-			queryContextBuilder.registerSchemaObjectAlias( ProjectMember.class, "VercelProjectMember" );
+			queryContextBuilder.registerSchemaObjectAlias( com.blazebit.query.connector.vercel.ProjectMember.class, "VercelProjectMember" );
 			queryContextBuilder.registerSchemaObjectAlias( Certificate.class, "VercelCertificate" );
 			queryContextBuilder.registerSchemaObjectAlias( AccessGroupMember.class, "VercelAccessGroupMember" );
 
