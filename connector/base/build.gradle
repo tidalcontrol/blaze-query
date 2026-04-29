@@ -12,6 +12,7 @@ dependencies {
     api project(':blaze-query-core-api')
     api libs.calcite.core
     testImplementation libs.junit.jupiter
+    testImplementation libs.assertj.core
 }
 
 description = 'blaze-query-connector-base'
