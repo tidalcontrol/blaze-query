@@ -84,10 +84,14 @@ include(':blaze-query-connector-google-gcp-kms')
 include(':blaze-query-connector-google-gcp-dns')
 
 include(':blaze-query-connector-datadog')
+include(':blaze-query-connector-notion')
+include(':blaze-query-connector-linear')
+include(':blaze-query-connector-scaleway')
+include(':blaze-query-connector-vercel')
+include(':blaze-query-connector-vercel-jersey3')
+include(':blaze-query-connector-hubspot')
 
 include(':blaze-query-connector-observatory')
-
-include(':blaze-query-connector-hubspot')
 
 project(":blaze-query-core").projectDir = file('core')
 project(":blaze-query-core-api").projectDir = file('core/api')
@@ -152,6 +156,11 @@ project(":blaze-query-connector-google-gcp-compute").projectDir = file('connecto
 project(":blaze-query-connector-google-gcp-iam").projectDir = file('connector/google/gcp/iam')
 project(":blaze-query-connector-google-gcp-storage").projectDir = file('connector/google/gcp/storage')
 project(":blaze-query-connector-datadog").projectDir = file('connector/datadog')
+project(":blaze-query-connector-vercel").projectDir = file('connector/vercel')
+project(":blaze-query-connector-vercel-jersey3").projectDir = file('connector/vercel/jersey3')
+project(":blaze-query-connector-notion").projectDir = file('connector/notion')
+project(":blaze-query-connector-linear").projectDir = file('connector/linear')
+project(":blaze-query-connector-scaleway").projectDir = file('connector/scaleway')
 project(":blaze-query-connector-google-gcp-sql").projectDir = file('connector/google/gcp/sql')
 project(":blaze-query-connector-google-gcp-container").projectDir = file('connector/google/gcp/container')
 project(":blaze-query-connector-google-gcp-kms").projectDir = file('connector/google/gcp/kms')
