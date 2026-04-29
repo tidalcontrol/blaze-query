@@ -206,6 +206,33 @@ import com.blazebit.query.connector.datadog.DatadogSecurityMonitoringRule;
 import com.blazebit.query.connector.datadog.DatadogSecuritySignal;
 import com.blazebit.query.connector.datadog.DatadogSyntheticsTest;
 import com.blazebit.query.connector.datadog.DatadogUser;
+import com.blazebit.query.connector.vercel.AccessGroup;
+import com.blazebit.query.connector.vercel.AccessGroupMember;
+import com.blazebit.query.connector.vercel.AuthToken;
+import com.blazebit.query.connector.vercel.Certificate;
+import com.blazebit.query.connector.vercel.Deployment;
+import com.blazebit.query.connector.vercel.Domain;
+import com.blazebit.query.connector.vercel.EnvironmentVariable;
+import com.blazebit.query.connector.vercel.FirewallConfig;
+import com.blazebit.query.connector.vercel.IntegrationConfiguration;
+import com.blazebit.query.connector.vercel.LogDrain;
+import com.blazebit.query.connector.vercel.TeamMember;
+import com.blazebit.query.connector.vercel.Webhook;
+import com.blazebit.query.connector.notion.NotionBlock;
+import com.blazebit.query.connector.notion.NotionComment;
+import com.blazebit.query.connector.notion.NotionDatabase;
+import com.blazebit.query.connector.notion.NotionDatabaseRow;
+import com.blazebit.query.connector.notion.NotionPage;
+import com.blazebit.query.connector.notion.NotionUser;
+import com.blazebit.query.connector.notion.NotionWorkspace;
+import com.blazebit.query.connector.linear.LinearCycle;
+import com.blazebit.query.connector.linear.LinearGraphQlClient;
+import com.blazebit.query.connector.linear.LinearIssue;
+import com.blazebit.query.connector.linear.LinearIssueLabel;
+import com.blazebit.query.connector.linear.LinearProject;
+import com.blazebit.query.connector.linear.LinearTeam;
+import com.blazebit.query.connector.linear.LinearUser;
+import com.blazebit.query.connector.linear.LinearWorkflowState;
 import com.blazebit.query.connector.observatory.ObservatoryClient;
 import com.blazebit.query.connector.view.EntityViewConnectorConfig;
 import com.blazebit.query.spi.DataFetchContext;
@@ -235,6 +262,36 @@ import com.blazebit.query.connector.google.drive.GoogleDrive;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.auth.http.HttpCredentialsAdapter;
+import com.blazebit.query.connector.scaleway.ScalewayAuditEvent;
+import com.blazebit.query.connector.scaleway.ScalewayClient;
+import com.blazebit.query.connector.scaleway.ScalewayIamApiKey;
+import com.blazebit.query.connector.scaleway.ScalewayIamApplication;
+import com.blazebit.query.connector.scaleway.ScalewayIamGroup;
+import com.blazebit.query.connector.scaleway.ScalewayIamPolicy;
+import com.blazebit.query.connector.scaleway.ScalewayIamSshKey;
+import com.blazebit.query.connector.scaleway.ScalewayIamUser;
+import com.blazebit.query.connector.scaleway.ScalewayInstance;
+import com.blazebit.query.connector.scaleway.ScalewayK8sCluster;
+import com.blazebit.query.connector.scaleway.ScalewayKmsKey;
+import com.blazebit.query.connector.scaleway.ScalewayPrivateNetwork;
+import com.blazebit.query.connector.scaleway.ScalewayRegistryImage;
+import com.blazebit.query.connector.scaleway.ScalewayRegistryNamespace;
+import com.blazebit.query.connector.scaleway.ScalewaySecret;
+import com.blazebit.query.connector.scaleway.ScalewaySecretVersion;
+import com.blazebit.query.connector.scaleway.ScalewaySecurityGroup;
+import com.blazebit.query.connector.scaleway.ScalewaySecurityGroupRule;
+import com.blazebit.query.connector.scaleway.ScalewayVpc;
+import com.blazebit.query.connector.scaleway.ScalewayObjectStorageBucket;
+import com.blazebit.query.connector.scaleway.ScalewayDatabase;
+import com.blazebit.query.connector.scaleway.ScalewayContainer;
+import com.blazebit.query.connector.scaleway.ScalewayFunction;
+import com.blazebit.query.connector.scaleway.ScalewayVolume;
+import com.blazebit.query.connector.scaleway.ScalewaySnapshot;
+import com.blazebit.query.connector.scaleway.ScalewayLoadBalancer;
+import com.blazebit.query.connector.scaleway.ScalewayLoadBalancerFrontend;
+import com.blazebit.query.connector.scaleway.ScalewayFlexibleIp;
+import com.blazebit.query.connector.scaleway.ScalewayCockpitAlertManager;
+import com.blazebit.query.connector.scaleway.ScalewayTemDomain;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.microsoft.graph.beta.serviceclient.GraphServiceClient;
 import jakarta.persistence.EntityManager;
@@ -285,10 +342,6 @@ public class Main {
 	private static final String GOOGLE_WORKSPACE_PRIVATE_KEY = "";
 	private static final String GOOGLE_WORKSPACE_SERVICE_ACCOUNT_USER = "";
 
-	private static final String DEVOPS_PAT = "";
-	private static final String DEVOPS_ORGANIZATION = "";
-	private static final String DEVOPS_PROJECT = "";
-
 	private static final String JIRA_DATACENTER_HOST = "";
 	private static final String JIRA_DATACENTER_TOKEN = "";
 	private static final String JIRA_CLOUD_HOST = "";
@@ -301,6 +354,17 @@ public class Main {
 	private static final String DATADOG_API_KEY = "";
 	private static final String DATADOG_APP_KEY = "";
 	private static final String DATADOG_SITE = "datadoghq.eu";
+
+	private static final String VERCEL_TOKEN = "";
+	private static final String VERCEL_TEAM_ID = "";
+
+	private static final String NOTION_API_TOKEN = "";
+	private static final String LINEAR_API_KEY = "";
+
+	private static final String SCALEWAY_SECRET_KEY = "";
+	private static final String SCALEWAY_ORGANIZATION_ID = "";
+	// Comma-separated list of zones to query, e.g. "fr-par-1,nl-ams-1"
+	private static final String SCALEWAY_ZONES = "fr-par-1,fr-par-2,nl-ams-1,pl-waw-1";
 
 	private Main() {
 	}
@@ -337,6 +401,10 @@ public class Main {
 			queryContextBuilder.setProperty( EntityViewConnectorConfig.ENTITY_VIEW_MANAGER.getPropertyName(), evm );
 //			queryContextBuilder.setProperty( ObservatoryConnectorConfig.OBSERVATORY_CLIENT.getPropertyName(), createObservatoryClient());
 //			queryContextBuilder.setProperty( DatadogConnectorConfig.DATADOG_API_CLIENT.getPropertyName(), createDatadogApiClient());
+//			queryContextBuilder.setProperty( VercelConnectorConfig.API_CLIENT.getPropertyName(), new VercelApiClient( VERCEL_TOKEN, VERCEL_TEAM_ID ) );
+//			queryContextBuilder.setProperty( NotionConnectorConfig.NOTION_CLIENT.getPropertyName(), new NotionClient( NOTION_API_TOKEN ) );
+//			queryContextBuilder.setProperty( LinearConnectorConfig.LINEAR_CLIENT.getPropertyName(), createLinearClient());
+//			queryContextBuilder.setProperty( ScalewayConnectorConfig.SCALEWAY_CLIENT.getPropertyName(), createScalewayClient());
 //			queryContextBuilder.setProperty( GitlabConnectorConfig.GITLAB_API.getPropertyName(), createGitlabApi());
 //			queryContextBuilder.setProperty( GitlabGraphQlConnectorConfig.GITLAB_GRAPHQL_CLIENT.getPropertyName(), createGitlabGraphQLClient());
 //            queryContextBuilder.setProperty(KandjiConnectorConfig.API_CLIENT.getPropertyName(), createKandjiApiClient());
@@ -605,6 +673,79 @@ public class Main {
 			queryContextBuilder.registerSchemaObjectAlias( DatadogMonitorDowntime.class, "DatadogMonitorDowntime" );
 			queryContextBuilder.registerSchemaObjectAlias( DatadogPermission.class, "DatadogPermission" );
 
+			// Vercel
+			queryContextBuilder.registerSchemaObjectAlias( AuthToken.class, "VercelAuthToken" );
+			queryContextBuilder.registerSchemaObjectAlias( com.blazebit.query.connector.vercel.Team.class, "VercelTeam" );
+			queryContextBuilder.registerSchemaObjectAlias( TeamMember.class, "VercelTeamMember" );
+			queryContextBuilder.registerSchemaObjectAlias( AccessGroup.class, "VercelAccessGroup" );
+			queryContextBuilder.registerSchemaObjectAlias( Webhook.class, "VercelWebhook" );
+			queryContextBuilder.registerSchemaObjectAlias( com.blazebit.query.connector.vercel.Project.class, "VercelProject" );
+			queryContextBuilder.registerSchemaObjectAlias( EnvironmentVariable.class, "VercelEnvVar" );
+			queryContextBuilder.registerSchemaObjectAlias( LogDrain.class, "VercelLogDrain" );
+			queryContextBuilder.registerSchemaObjectAlias( FirewallConfig.class, "VercelFirewallConfig" );
+			queryContextBuilder.registerSchemaObjectAlias( IntegrationConfiguration.class, "VercelIntegration" );
+			queryContextBuilder.registerSchemaObjectAlias( Deployment.class, "VercelDeployment" );
+			queryContextBuilder.registerSchemaObjectAlias( Domain.class, "VercelDomain" );
+			queryContextBuilder.registerSchemaObjectAlias( com.blazebit.query.connector.vercel.ProjectMember.class, "VercelProjectMember" );
+			queryContextBuilder.registerSchemaObjectAlias( Certificate.class, "VercelCertificate" );
+			queryContextBuilder.registerSchemaObjectAlias( AccessGroupMember.class, "VercelAccessGroupMember" );
+
+			// Notion
+			queryContextBuilder.registerSchemaObjectAlias( NotionWorkspace.class, "NotionWorkspace" );
+			queryContextBuilder.registerSchemaObjectAlias( NotionUser.class, "NotionUser" );
+			queryContextBuilder.registerSchemaObjectAlias( NotionPage.class, "NotionPage" );
+			queryContextBuilder.registerSchemaObjectAlias( NotionDatabase.class, "NotionDatabase" );
+			queryContextBuilder.registerSchemaObjectAlias( NotionBlock.class, "NotionBlock" );
+			queryContextBuilder.registerSchemaObjectAlias( NotionComment.class, "NotionComment" );
+			queryContextBuilder.registerSchemaObjectAlias( NotionDatabaseRow.class, "NotionDatabaseRow" );
+
+			// Linear
+			queryContextBuilder.registerSchemaObjectAlias( LinearIssue.class, "LinearIssue" );
+			queryContextBuilder.registerSchemaObjectAlias( LinearUser.class, "LinearUser" );
+			queryContextBuilder.registerSchemaObjectAlias( LinearTeam.class, "LinearTeam" );
+			queryContextBuilder.registerSchemaObjectAlias( LinearWorkflowState.class, "LinearWorkflowState" );
+			queryContextBuilder.registerSchemaObjectAlias( LinearIssueLabel.class, "LinearIssueLabel" );
+			queryContextBuilder.registerSchemaObjectAlias( LinearProject.class, "LinearProject" );
+			queryContextBuilder.registerSchemaObjectAlias( LinearCycle.class, "LinearCycle" );
+
+			// Scaleway — IAM
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayIamUser.class, "ScalewayIamUser" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayIamGroup.class, "ScalewayIamGroup" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayIamApplication.class, "ScalewayIamApplication" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayIamApiKey.class, "ScalewayIamApiKey" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayIamPolicy.class, "ScalewayIamPolicy" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayIamSshKey.class, "ScalewayIamSshKey" );
+			// Scaleway — Instance
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayInstance.class, "ScalewayInstance" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewaySecurityGroup.class, "ScalewaySecurityGroup" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewaySecurityGroupRule.class, "ScalewaySecurityGroupRule" );
+			// Scaleway — Secret Manager
+			queryContextBuilder.registerSchemaObjectAlias( ScalewaySecret.class, "ScalewaySecret" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewaySecretVersion.class, "ScalewaySecretVersion" );
+			// Scaleway — Key Manager (KMS)
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayKmsKey.class, "ScalewayKmsKey" );
+			// Scaleway — Audit Trail
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayAuditEvent.class, "ScalewayAuditEvent" );
+			// Scaleway — Kubernetes
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayK8sCluster.class, "ScalewayK8sCluster" );
+			// Scaleway — Container Registry
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayRegistryNamespace.class, "ScalewayRegistryNamespace" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayRegistryImage.class, "ScalewayRegistryImage" );
+			// Scaleway — VPC
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayVpc.class, "ScalewayVpc" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayPrivateNetwork.class, "ScalewayPrivateNetwork" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayObjectStorageBucket.class, "ScalewayObjectStorageBucket" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayDatabase.class, "ScalewayDatabase" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayContainer.class, "ScalewayContainer" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayFunction.class, "ScalewayFunction" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayVolume.class, "ScalewayVolume" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewaySnapshot.class, "ScalewaySnapshot" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayLoadBalancer.class, "ScalewayLoadBalancer" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayLoadBalancerFrontend.class, "ScalewayLoadBalancerFrontend" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayFlexibleIp.class, "ScalewayFlexibleIp" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayCockpitAlertManager.class, "ScalewayCockpitAlertManager" );
+			queryContextBuilder.registerSchemaObjectAlias( ScalewayTemDomain.class, "ScalewayTemDomain" );
+
 			// Observatory
 			queryContextBuilder.registerSchemaObject(
 					com.blazebit.query.connector.observatory.ObservatoryScan.class,
@@ -625,6 +766,10 @@ public class Main {
 //					testGcp( session );
 //					testGoogleWorkspace( session );
 //					testDatadog( session );
+//					testVercel( session );
+//					testNotion( session );
+//					testLinear( session );
+//					testScaleway( session );
 //					testAws( session );
 //					testGitlab( session );
 //					testGitHub( session );
@@ -632,8 +777,8 @@ public class Main {
 //					testKandji( session );
 //					testEntityView( session );
 //					testObservatory(  session );
-					testAzureGraph( session );
-					testAzureResourceManager( session );
+//					testAzureGraph( session );
+//					testAzureResourceManager( session );
 				}
 			}
 		}
@@ -1921,6 +2066,78 @@ public class Main {
 		print( observatoryCheckResult );
 	}
 
+	private static void testLinear(QuerySession session) {
+		// Issues: all open security issues ordered by priority
+		TypedQuery<Object[]> issueQuery = session.createQuery(
+				"""
+				SELECT i.identifier, i.title, i.priorityLabel, i.state.name, i.assignee.name, i.createdAt
+				FROM LinearIssue i
+				WHERE i.state.type != 'completed' AND i.state.type != 'cancelled'
+				ORDER BY i.priority ASC, i.createdAt ASC
+				""" );
+		System.out.println( "Linear - Open Issues (by priority)" );
+		print( issueQuery.getResultList() );
+
+		// Issues: urgent issues without an assignee
+		TypedQuery<Object[]> unassignedUrgentQuery = session.createQuery(
+				"""
+				SELECT i.identifier, i.title, i.team.name, i.createdAt
+				FROM LinearIssue i
+				WHERE i.priority = 1 AND i.assignee IS NULL
+				""" );
+		System.out.println( "Linear - Urgent Issues Without Assignee" );
+		print( unassignedUrgentQuery.getResultList() );
+
+		// Users: active admin users
+		TypedQuery<Object[]> adminQuery = session.createQuery(
+				"SELECT u.name, u.email, u.admin, u.guest FROM LinearUser u WHERE u.active = TRUE AND u.admin = TRUE" );
+		System.out.println( "Linear - Active Admin Users" );
+		print( adminQuery.getResultList() );
+
+		// Users: inactive users (potential off-boarding risk)
+		TypedQuery<Object[]> inactiveQuery = session.createQuery(
+				"SELECT u.name, u.email FROM LinearUser u WHERE u.active = FALSE" );
+		System.out.println( "Linear - Inactive Users" );
+		print( inactiveQuery.getResultList() );
+
+		// Teams: private teams
+		TypedQuery<Object[]> teamQuery = session.createQuery(
+				"SELECT t.name, t.key, t.privateTeam FROM LinearTeam t ORDER BY t.name ASC" );
+		System.out.println( "Linear - All Teams" );
+		print( teamQuery.getResultList() );
+
+		// WorkflowStates: all states per team
+		TypedQuery<Object[]> stateQuery = session.createQuery(
+				"SELECT s.team.name, s.name, s.type FROM LinearWorkflowState s ORDER BY s.team.name ASC, s.position ASC" );
+		System.out.println( "Linear - Workflow States" );
+		print( stateQuery.getResultList() );
+
+		// Projects: in-progress projects with their lead
+		TypedQuery<Object[]> projectQuery = session.createQuery(
+				"""
+				SELECT p.name, p.state, p.priorityLabel, p.targetDate, p.projectLead.name
+				FROM LinearProject p
+				WHERE p.state = 'inProgress' OR p.state = 'planned'
+				""" );
+		System.out.println( "Linear - Active Projects" );
+		print( projectQuery.getResultList() );
+
+		// Cycles: active cycles (started, not yet completed)
+		TypedQuery<Object[]> cycleQuery = session.createQuery(
+				"""
+				SELECT c.team.name, c.name, c.number, c.startsAt, c.endsAt
+				FROM LinearCycle c
+				WHERE c.completedAt IS NULL AND c.canceledAt IS NULL
+				ORDER BY c.startsAt DESC
+				""" );
+		System.out.println( "Linear - Active Cycles" );
+		print( cycleQuery.getResultList() );
+	}
+
+	private static LinearGraphQlClient createLinearClient() {
+		return new LinearGraphQlClient( LINEAR_API_KEY );
+	}
+
 	private static void testDatadog(QuerySession session) {
 		// Logs: find recent error logs
 		TypedQuery<Object[]> logQuery = session.createQuery(
@@ -2110,6 +2327,332 @@ public class Main {
 		List<Object[]> permissionRestrictedResult = permissionRestrictedQuery.getResultList();
 		System.out.println( "Datadog Permissions - restricted" );
 		print( permissionRestrictedResult );
+	}
+
+	private static void testVercel(QuerySession session) {
+		// Auth Tokens: all tokens with type and last-active timestamp
+		TypedQuery<Object[]> tokenQuery = session.createQuery(
+				"SELECT t.id, t.name, t.type, t.origin, t.activeAt, t.expiresAt FROM VercelAuthToken t" );
+		List<Object[]> tokenResult = tokenQuery.getResultList();
+		System.out.println( "Vercel Auth Tokens" );
+		print( tokenResult );
+
+		// Auth Tokens: tokens never used (activeAt is null)
+		TypedQuery<Object[]> unusedTokenQuery = session.createQuery(
+				"SELECT t.id, t.name, t.origin, t.createdAt FROM VercelAuthToken t WHERE t.activeAt IS NULL" );
+		List<Object[]> unusedTokenResult = unusedTokenQuery.getResultList();
+		System.out.println( "Vercel Auth Tokens - never used" );
+		print( unusedTokenResult );
+
+		// Teams: security settings overview
+		TypedQuery<Object[]> teamQuery = session.createQuery(
+				"""
+				SELECT t.id, t.slug, t.name,
+					t.saml.enforced,
+					t.sensitiveEnvironmentVariablePolicy,
+					t.hideIpAddresses
+				FROM VercelTeam t
+				""" );
+		List<Object[]> teamResult = teamQuery.getResultList();
+		System.out.println( "Vercel Teams" );
+		print( teamResult );
+
+		// Teams: SAML not enforced — compliance risk
+		TypedQuery<Object[]> noSamlQuery = session.createQuery(
+				"SELECT t.id, t.slug FROM VercelTeam t WHERE t.saml.enforced = false OR t.saml IS NULL" );
+		List<Object[]> noSamlResult = noSamlQuery.getResultList();
+		System.out.println( "Vercel Teams - SAML not enforced" );
+		print( noSamlResult );
+
+		// Team Members: full roster with role and join origin
+		TypedQuery<Object[]> memberQuery = session.createQuery(
+				"SELECT m.uid, m.email, m.role, m.confirmed, m.teamId, m.joinedFrom.origin FROM VercelTeamMember m" );
+		List<Object[]> memberResult = memberQuery.getResultList();
+		System.out.println( "Vercel Team Members" );
+		print( memberResult );
+
+		// Team Members: unconfirmed invites (potential stale access)
+		TypedQuery<Object[]> unconfirmedQuery = session.createQuery(
+				"SELECT m.uid, m.email, m.teamId, m.createdAt FROM VercelTeamMember m WHERE m.confirmed = false" );
+		List<Object[]> unconfirmedResult = unconfirmedQuery.getResultList();
+		System.out.println( "Vercel Team Members - unconfirmed" );
+		print( unconfirmedResult );
+
+		// Team Members: owners
+		TypedQuery<Object[]> ownerQuery = session.createQuery(
+				"SELECT m.uid, m.email, m.teamId FROM VercelTeamMember m WHERE m.role = 'OWNER'" );
+		List<Object[]> ownerResult = ownerQuery.getResultList();
+		System.out.println( "Vercel Team Members - owners" );
+		print( ownerResult );
+
+		// Access Groups: all groups with member/project counts and SCIM flag
+		TypedQuery<Object[]> groupQuery = session.createQuery(
+				"SELECT g.accessGroupId, g.name, g.membersCount, g.projectsCount, g.isDsyncManaged FROM VercelAccessGroup g" );
+		List<Object[]> groupResult = groupQuery.getResultList();
+		System.out.println( "Vercel Access Groups" );
+		print( groupResult );
+
+		// Access Groups: manually managed (not SCIM) — higher drift risk
+		TypedQuery<Object[]> manualGroupQuery = session.createQuery(
+				"SELECT g.accessGroupId, g.name FROM VercelAccessGroup g WHERE g.isDsyncManaged = false OR g.isDsyncManaged IS NULL" );
+		List<Object[]> manualGroupResult = manualGroupQuery.getResultList();
+		System.out.println( "Vercel Access Groups - not managed by directory sync" );
+		print( manualGroupResult );
+
+		// Webhooks: full list with event subscriptions
+		TypedQuery<Object[]> webhookQuery = session.createQuery(
+				"SELECT w.id, w.url, w.ownerId, w.createdAt FROM VercelWebhook w" );
+		List<Object[]> webhookResult = webhookQuery.getResultList();
+		System.out.println( "Vercel Webhooks" );
+		print( webhookResult );
+
+		// Webhooks: team-wide (no project scoping)
+		TypedQuery<Object[]> teamWebhookQuery = session.createQuery(
+				"SELECT w.id, w.url FROM VercelWebhook w WHERE CARDINALITY(w.projectIds) = 0" );
+		List<Object[]> teamWebhookResult = teamWebhookQuery.getResultList();
+		System.out.println( "Vercel Webhooks - team-wide" );
+		print( teamWebhookResult );
+
+		// Projects: deployment protection overview
+		TypedQuery<Object[]> projectQuery = session.createQuery(
+				"""
+				SELECT p.id, p.name, p.framework,
+					p.passwordProtection.deploymentType,
+					p.ssoProtection.deploymentType,
+					p.autoExposeSystemEnvs
+				FROM VercelProject p
+				""" );
+		List<Object[]> projectResult = projectQuery.getResultList();
+		System.out.println( "Vercel Projects" );
+		print( projectResult );
+
+		// Projects: no password or SSO protection (publicly reachable deployments)
+		TypedQuery<Object[]> unprotectedQuery = session.createQuery(
+				"SELECT p.id, p.name FROM VercelProject p WHERE p.passwordProtection IS NULL AND p.ssoProtection IS NULL" );
+		List<Object[]> unprotectedResult = unprotectedQuery.getResultList();
+		System.out.println( "Vercel Projects - no deployment protection" );
+		print( unprotectedResult );
+
+		// Projects: auto-exposing system environment variables
+		TypedQuery<Object[]> autoExposeQuery = session.createQuery(
+				"SELECT p.id, p.name FROM VercelProject p WHERE p.autoExposeSystemEnvs = true" );
+		List<Object[]> autoExposeResult = autoExposeQuery.getResultList();
+		System.out.println( "Vercel Projects - auto-exposing system env vars" );
+		print( autoExposeResult );
+
+		// Environment Variables: plain-text variables (potential secret exposure)
+		TypedQuery<Object[]> plainEnvQuery = session.createQuery(
+				"SELECT e.id, e.key, e.projectId FROM VercelEnvVar e WHERE e.type = 'plain'" );
+		List<Object[]> plainEnvResult = plainEnvQuery.getResultList();
+		System.out.println( "Vercel Env Vars - plain-text (potential secret exposure)" );
+		print( plainEnvResult );
+
+		// Environment Variables: scoped to exactly one target (often production-only secrets)
+		TypedQuery<Object[]> singleTargetEnvQuery = session.createQuery(
+				"SELECT e.id, e.key, e.type, e.projectId FROM VercelEnvVar e WHERE CARDINALITY(e.target) = 1" );
+		List<Object[]> singleTargetEnvResult = singleTargetEnvQuery.getResultList();
+		System.out.println( "Vercel Env Vars - single-target (production-only secrets)" );
+		print( singleTargetEnvResult );
+
+		// Log Drains: all drains
+		TypedQuery<Object[]> logDrainQuery = session.createQuery(
+				"SELECT d.id, d.name, d.url, d.deliveryFormat FROM VercelLogDrain d" );
+		List<Object[]> logDrainResult = logDrainQuery.getResultList();
+		System.out.println( "Vercel Log Drains" );
+		print( logDrainResult );
+
+		// Log Drains: team-wide drains (not scoped to a project)
+		TypedQuery<Object[]> teamWideDrainQuery = session.createQuery(
+				"SELECT d.id, d.name FROM VercelLogDrain d WHERE CARDINALITY(d.projectIds) = 0" );
+		List<Object[]> teamWideDrainResult = teamWideDrainQuery.getResultList();
+		System.out.println( "Vercel Log Drains - team-wide" );
+		print( teamWideDrainResult );
+
+		// Firewall: projects with WAF disabled
+		TypedQuery<Object[]> fwDisabledQuery = session.createQuery(
+				"SELECT f.id, f.projectKey, f.projectId FROM VercelFirewallConfig f WHERE f.firewallEnabled = false OR f.firewallEnabled IS NULL" );
+		List<Object[]> fwDisabledResult = fwDisabledQuery.getResultList();
+		System.out.println( "Vercel Firewall - WAF disabled" );
+		print( fwDisabledResult );
+
+		// Firewall: projects with bot protection disabled
+		TypedQuery<Object[]> botDisabledQuery = session.createQuery(
+				"SELECT f.id, f.projectKey FROM VercelFirewallConfig f WHERE f.botIdEnabled = false OR f.botIdEnabled IS NULL" );
+		List<Object[]> botDisabledResult = botDisabledQuery.getResultList();
+		System.out.println( "Vercel Firewall - bot protection disabled" );
+		print( botDisabledResult );
+
+		// Integrations: suspended or disabled configurations
+		TypedQuery<Object[]> suspendedIntQuery = session.createQuery(
+				"SELECT i.id, i.slug, i.status, i.disabledAt FROM VercelIntegration i WHERE i.status = 'suspended' OR i.disabledAt IS NOT NULL" );
+		List<Object[]> suspendedIntResult = suspendedIntQuery.getResultList();
+		System.out.println( "Vercel Integrations - suspended or disabled" );
+		print( suspendedIntResult );
+
+		// Deployments: non-git production deployments (bypass CI/CD review controls)
+		TypedQuery<Object[]> nonGitProdQuery = session.createQuery(
+				"SELECT d.uid, d.name, d.source, d.creator.email FROM VercelDeployment d WHERE d.target = 'production' AND d.source <> 'git'" );
+		List<Object[]> nonGitProdResult = nonGitProdQuery.getResultList();
+		System.out.println( "Vercel Deployments - non-git production (bypass CI/CD)" );
+		print( nonGitProdResult );
+
+		// Deployments: failed deployments
+		TypedQuery<Object[]> failedDeplQuery = session.createQuery(
+				"SELECT d.uid, d.name, d.state, d.errorCode FROM VercelDeployment d WHERE d.state = 'ERROR'" );
+		List<Object[]> failedDeplResult = failedDeplQuery.getResultList();
+		System.out.println( "Vercel Deployments - failed" );
+		print( failedDeplResult );
+
+		// Domains: unverified domains (domain takeover risk)
+		TypedQuery<Object[]> unverifiedDomainQuery = session.createQuery(
+				"SELECT d.id, d.name FROM VercelDomain d WHERE d.verified = false OR d.verified IS NULL" );
+		List<Object[]> unverifiedDomainResult = unverifiedDomainQuery.getResultList();
+		System.out.println( "Vercel Domains - unverified (takeover risk)" );
+		print( unverifiedDomainResult );
+
+		// Domains: auto-renew disabled with expiry set (hijack risk)
+		TypedQuery<Object[]> noRenewDomainQuery = session.createQuery(
+				"SELECT d.id, d.name, d.expiresAt FROM VercelDomain d WHERE d.renew = false AND d.expiresAt IS NOT NULL" );
+		List<Object[]> noRenewDomainResult = noRenewDomainQuery.getResultList();
+		System.out.println( "Vercel Domains - no auto-renew with expiry (hijack risk)" );
+		print( noRenewDomainResult );
+
+		// Project Members: elevated project role vs team role (privilege escalation)
+		TypedQuery<Object[]> elevatedProjMemberQuery = session.createQuery(
+				"SELECT m.uid, m.email, m.role, m.teamRole, m.projectId FROM VercelProjectMember m WHERE m.role = 'ADMIN' AND m.teamRole <> 'OWNER'" );
+		List<Object[]> elevatedProjMemberResult = elevatedProjMemberQuery.getResultList();
+		System.out.println( "Vercel Project Members - elevated project role (privilege escalation)" );
+		print( elevatedProjMemberResult );
+
+		// Certificates: without auto-renew (expiry risk)
+		TypedQuery<Object[]> noRenewCertQuery = session.createQuery(
+				"SELECT c.id FROM VercelCertificate c WHERE c.autoRenew = false OR c.autoRenew IS NULL" );
+		List<Object[]> noRenewCertResult = noRenewCertQuery.getResultList();
+		System.out.println( "Vercel Certificates - no auto-renew (expiry risk)" );
+		print( noRenewCertResult );
+
+		// Access Group Members: admin members (elevated access group role)
+		TypedQuery<Object[]> agAdminQuery = session.createQuery(
+				"SELECT m.uid, m.email, m.role, m.accessGroupId FROM VercelAccessGroupMember m WHERE m.role = 'ADMIN'" );
+		List<Object[]> agAdminResult = agAdminQuery.getResultList();
+		System.out.println( "Vercel Access Group Members - admins" );
+		print( agAdminResult );
+	}
+
+	private static void testNotion(QuerySession session) {
+		// Workspace: confirm which workspace this integration is installed in
+		TypedQuery<Object[]> workspaceQuery = session.createQuery(
+				"SELECT w.workspaceId, w.workspaceName, w.botId, w.botName FROM NotionWorkspace w" );
+		List<Object[]> workspaceResult = workspaceQuery.getResultList();
+		System.out.println( "Notion Workspace" );
+		print( workspaceResult );
+
+		// Users: all workspace members
+		TypedQuery<Object[]> userQuery = session.createQuery(
+				"SELECT u.id, u.name, u.type, u.email FROM NotionUser u" );
+		List<Object[]> userResult = userQuery.getResultList();
+		System.out.println( "Notion Users" );
+		print( userResult );
+
+		// Users: bot integrations and their ownership type
+		TypedQuery<Object[]> botQuery = session.createQuery(
+				"SELECT u.id, u.name, u.botOwnerType FROM NotionUser u WHERE u.type = 'bot'" );
+		List<Object[]> botResult = botQuery.getResultList();
+		System.out.println( "Notion Bot Integrations" );
+		print( botResult );
+
+		// Pages: all pages with ownership and public status
+		TypedQuery<Object[]> pageQuery = session.createQuery(
+				"SELECT p.id, p.createdById, p.lastEditedById, p.parentType, p.archived, p.inTrash, p.locked, p.publicUrl FROM NotionPage p" );
+		List<Object[]> pageResult = pageQuery.getResultList();
+		System.out.println( "Notion Pages" );
+		print( pageResult );
+
+		// Pages: publicly shared pages — data exposure risk
+		TypedQuery<Object[]> publicPageQuery = session.createQuery(
+				"SELECT p.id, p.publicUrl FROM NotionPage p WHERE p.publicUrl IS NOT NULL" );
+		List<Object[]> publicPageResult = publicPageQuery.getResultList();
+		System.out.println( "Notion Pages - publicly shared (Share to web enabled)" );
+		print( publicPageResult );
+
+		// Pages: locked pages (content freeze controls)
+		TypedQuery<Object[]> lockedPageQuery = session.createQuery(
+				"SELECT p.id, p.createdById, p.lastEditedTime FROM NotionPage p WHERE p.locked = true" );
+		List<Object[]> lockedPageResult = lockedPageQuery.getResultList();
+		System.out.println( "Notion Pages - locked" );
+		print( lockedPageResult );
+
+		// Databases: all databases
+		TypedQuery<Object[]> databaseQuery = session.createQuery(
+				"SELECT d.id, d.title, d.parentType, d.archived, d.inTrash, d.inline FROM NotionDatabase d" );
+		List<Object[]> databaseResult = databaseQuery.getResultList();
+		System.out.println( "Notion Databases" );
+		print( databaseResult );
+
+		// Databases: inline databases (embedded in pages, less visible)
+		TypedQuery<Object[]> inlineDatabaseQuery = session.createQuery(
+				"SELECT d.id, d.title, d.parentId FROM NotionDatabase d WHERE d.inline = true" );
+		List<Object[]> inlineDatabaseResult = inlineDatabaseQuery.getResultList();
+		System.out.println( "Notion Databases - inline (embedded in pages)" );
+		print( inlineDatabaseResult );
+
+		// Blocks: DLP scan for potentially sensitive content
+		TypedQuery<Object[]> sensitiveBlockQuery = session.createQuery(
+				"""
+						SELECT b.id, b.pageId, b.type, b.plainText
+						FROM NotionBlock b
+						WHERE b.plainText LIKE '%password%'
+						OR b.plainText LIKE '%secret%'
+						OR b.plainText LIKE '%api_key%'
+						OR b.plainText LIKE '%token%'
+						OR b.plainText LIKE '%credential%'
+						""" );
+		List<Object[]> sensitiveBlockResult = sensitiveBlockQuery.getResultList();
+		System.out.println( "Notion Blocks - potentially sensitive content (DLP)" );
+		print( sensitiveBlockResult );
+
+		// Comments: DLP scan for sensitive content in comments
+		TypedQuery<Object[]> sensitiveCommentQuery = session.createQuery(
+				"""
+						SELECT c.id, c.pageId, c.createdById, c.plainText
+						FROM NotionComment c
+						WHERE c.plainText LIKE '%password%'
+						OR c.plainText LIKE '%secret%'
+						OR c.plainText LIKE '%api_key%'
+						OR c.plainText LIKE '%token%'
+						""" );
+		List<Object[]> sensitiveCommentResult = sensitiveCommentQuery.getResultList();
+		System.out.println( "Notion Comments - potentially sensitive content (DLP)" );
+		print( sensitiveCommentResult );
+
+		// Database rows: DLP scan across all row property values (requires notionDatabaseRowsEnabled=true)
+		TypedQuery<Object[]> rowScanQuery = session.createQuery(
+				"""
+						SELECT r.id, r.databaseId, r.title, r.propertiesPlainText
+						FROM NotionDatabaseRow r
+						WHERE r.propertiesPlainText LIKE '%SSN%'
+						OR r.propertiesPlainText LIKE '%passport%'
+						OR r.propertiesPlainText LIKE '%date of birth%'
+						""" );
+		List<Object[]> rowScanResult = rowScanQuery.getResultList();
+		System.out.println( "Notion Database Rows - potential PII (DLP)" );
+		print( rowScanResult );
+
+		// Cross-entity: pages last edited by users no longer in the workspace
+		// (requires joining NotionPage and NotionUser)
+		TypedQuery<Object[]> orphanedPageQuery = session.createQuery(
+				"""
+						SELECT p.id, p.lastEditedById, p.lastEditedTime
+						FROM NotionPage p
+						WHERE p.inTrash = false
+						AND p.archived = false
+						AND NOT EXISTS (
+							SELECT 1 FROM NotionUser u WHERE u.id = p.lastEditedById
+						)
+						""" );
+		List<Object[]> orphanedPageResult = orphanedPageQuery.getResultList();
+		System.out.println( "Notion Pages - last edited by unknown user (possible deprovisioned account)" );
+		print( orphanedPageResult );
 	}
 
 	private static com.datadog.api.client.ApiClient createDatadogApiClient() {
@@ -2386,6 +2929,434 @@ public class Main {
 		catch (Exception e) {
 			throw new RuntimeException( e );
 		}
+	}
+
+	// =========================================================================
+	// Scaleway
+	// =========================================================================
+
+	private static ScalewayClient createScalewayClient() {
+		List<String> zones = List.of( SCALEWAY_ZONES.split( "," ) );
+		return new ScalewayClient( SCALEWAY_SECRET_KEY, SCALEWAY_ORGANIZATION_ID, zones );
+	}
+
+	private static void testScaleway(QuerySession session) {
+		// IAM Users: list all users
+		TypedQuery<Object[]> userQuery = session.createQuery(
+				"SELECT u.id, u.email, u.status, u.mfa, u.type FROM ScalewayIamUser u" );
+		List<Object[]> userResult = userQuery.getResultList();
+		System.out.println( "Scaleway IAM Users" );
+		print( userResult );
+
+		// IAM Users: find active users without MFA (compliance risk)
+		TypedQuery<Object[]> userNoMfaQuery = session.createQuery(
+				"""
+				SELECT u.id, u.email, u.type
+				FROM ScalewayIamUser u
+				WHERE u.mfa = false AND u.status = 'active'
+				""" );
+		List<Object[]> userNoMfaResult = userNoMfaQuery.getResultList();
+		System.out.println( "Scaleway IAM Users - MFA not enabled (active accounts)" );
+		print( userNoMfaResult );
+
+		// IAM Groups: list all groups
+		TypedQuery<Object[]> groupQuery = session.createQuery(
+				"SELECT g.id, g.name, g.organizationId FROM ScalewayIamGroup g" );
+		List<Object[]> groupResult = groupQuery.getResultList();
+		System.out.println( "Scaleway IAM Groups" );
+		print( groupResult );
+
+		// IAM Applications: list all service accounts and their key count
+		TypedQuery<Object[]> appQuery = session.createQuery(
+				"SELECT a.id, a.name, a.nbApiKeys, a.editable FROM ScalewayIamApplication a" );
+		List<Object[]> appResult = appQuery.getResultList();
+		System.out.println( "Scaleway IAM Applications (Service Accounts)" );
+		print( appResult );
+
+		// IAM API Keys: list all keys
+		TypedQuery<Object[]> apiKeyQuery = session.createQuery(
+				"SELECT k.accessKey, k.userId, k.applicationId, k.expiresAt, k.createdAt FROM ScalewayIamApiKey k" );
+		List<Object[]> apiKeyResult = apiKeyQuery.getResultList();
+		System.out.println( "Scaleway IAM API Keys" );
+		print( apiKeyResult );
+
+		// IAM API Keys: find keys without expiry date (credential hygiene risk)
+		TypedQuery<Object[]> apiKeyNoExpiryQuery = session.createQuery(
+				"""
+				SELECT k.accessKey, k.userId, k.applicationId, k.createdAt
+				FROM ScalewayIamApiKey k
+				WHERE k.expiresAt IS NULL
+				""" );
+		List<Object[]> apiKeyNoExpiryResult = apiKeyNoExpiryQuery.getResultList();
+		System.out.println( "Scaleway IAM API Keys - no expiry set" );
+		print( apiKeyNoExpiryResult );
+
+		// IAM Policies: list all policies with scope counts
+		TypedQuery<Object[]> policyQuery = session.createQuery(
+				"SELECT p.id, p.name, p.userId, p.groupId, p.applicationId, p.nbRules, p.nbPermissionSets FROM ScalewayIamPolicy p" );
+		List<Object[]> policyResult = policyQuery.getResultList();
+		System.out.println( "Scaleway IAM Policies" );
+		print( policyResult );
+
+		// IAM Policies: find broad policies with many permission sets (blast radius risk)
+		TypedQuery<Object[]> broadPolicyQuery = session.createQuery(
+				"""
+				SELECT p.id, p.name, p.nbPermissionSets, p.nbRules
+				FROM ScalewayIamPolicy p
+				WHERE p.nbPermissionSets > 5
+				""" );
+		List<Object[]> broadPolicyResult = broadPolicyQuery.getResultList();
+		System.out.println( "Scaleway IAM Policies - large permission sets (blast radius)" );
+		print( broadPolicyResult );
+
+		// SSH Keys: list all keys
+		TypedQuery<Object[]> sshKeyQuery = session.createQuery(
+				"SELECT k.id, k.name, k.fingerprint, k.disabled, k.projectId FROM ScalewayIamSshKey k" );
+		List<Object[]> sshKeyResult = sshKeyQuery.getResultList();
+		System.out.println( "Scaleway SSH Keys" );
+		print( sshKeyResult );
+
+		// SSH Keys: find disabled keys still registered
+		TypedQuery<Object[]> sshKeyDisabledQuery = session.createQuery(
+				"SELECT k.id, k.name, k.fingerprint FROM ScalewayIamSshKey k WHERE k.disabled = true" );
+		List<Object[]> sshKeyDisabledResult = sshKeyDisabledQuery.getResultList();
+		System.out.println( "Scaleway SSH Keys - disabled" );
+		print( sshKeyDisabledResult );
+
+		// Instances: list all instances
+		TypedQuery<Object[]> instanceQuery = session.createQuery(
+				"SELECT i.id, i.name, i.state, i.commercialType, i.zone, i.publicIp, i.instanceProtected FROM ScalewayInstance i" );
+		List<Object[]> instanceResult = instanceQuery.getResultList();
+		System.out.println( "Scaleway Instances" );
+		print( instanceResult );
+
+		// Instances: find running instances with a public IP but not deletion-protected (risk)
+		TypedQuery<Object[]> instanceRiskQuery = session.createQuery(
+				"""
+				SELECT i.id, i.name, i.publicIp, i.zone, i.securityGroupName
+				FROM ScalewayInstance i
+				WHERE i.state = 'running'
+				AND i.publicIp IS NOT NULL
+				AND i.instanceProtected = false
+				""" );
+		List<Object[]> instanceRiskResult = instanceRiskQuery.getResultList();
+		System.out.println( "Scaleway Instances - public IP, unprotected, running" );
+		print( instanceRiskResult );
+
+		// Instances: count by zone
+		TypedQuery<Object[]> instanceByZoneQuery = session.createQuery(
+				"SELECT i.zone, COUNT(*) AS cnt FROM ScalewayInstance i GROUP BY i.zone" );
+		List<Object[]> instanceByZoneResult = instanceByZoneQuery.getResultList();
+		System.out.println( "Scaleway Instances - count by zone" );
+		print( instanceByZoneResult );
+
+		// Security Groups: list all groups with default policies
+		TypedQuery<Object[]> sgQuery = session.createQuery(
+				"SELECT sg.id, sg.name, sg.zone, sg.inboundDefaultPolicy, sg.outboundDefaultPolicy, sg.stateful FROM ScalewaySecurityGroup sg" );
+		List<Object[]> sgResult = sgQuery.getResultList();
+		System.out.println( "Scaleway Security Groups" );
+		print( sgResult );
+
+		// Security Groups: find permissive inbound default (accept-all, network risk)
+		TypedQuery<Object[]> sgPermissiveQuery = session.createQuery(
+				"""
+				SELECT sg.id, sg.name, sg.zone
+				FROM ScalewaySecurityGroup sg
+				WHERE sg.inboundDefaultPolicy = 'accept'
+				""" );
+		List<Object[]> sgPermissiveResult = sgPermissiveQuery.getResultList();
+		System.out.println( "Scaleway Security Groups - permissive inbound default policy" );
+		print( sgPermissiveResult );
+
+		// Security Groups: find non-stateful groups (may allow asymmetric traffic)
+		TypedQuery<Object[]> sgStatelessQuery = session.createQuery(
+				"SELECT sg.id, sg.name FROM ScalewaySecurityGroup sg WHERE sg.stateful = false" );
+		List<Object[]> sgStatelessResult = sgStatelessQuery.getResultList();
+		System.out.println( "Scaleway Security Groups - non-stateful (legacy)" );
+		print( sgStatelessResult );
+
+		// Security Group Rules: find rules allowing all traffic from the internet
+		TypedQuery<Object[]> sgRuleOpenQuery = session.createQuery(
+				"""
+				SELECT r.id, r.securityGroupId, r.protocol, r.direction, r.ipRange
+				FROM ScalewaySecurityGroupRule r
+				WHERE r.direction = 'inbound'
+				AND r.action = 'accept'
+				AND r.ipRange = '0.0.0.0/0'
+				AND r.destPortFrom IS NULL
+				""" );
+		List<Object[]> sgRuleOpenResult = sgRuleOpenQuery.getResultList();
+		System.out.println( "Scaleway Security Group Rules - accept all inbound from 0.0.0.0/0" );
+		print( sgRuleOpenResult );
+
+		// Security Group Rules: find rules exposing SSH (22) to the internet
+		TypedQuery<Object[]> sgRuleSshQuery = session.createQuery(
+				"""
+				SELECT r.id, r.securityGroupId, r.zone, r.ipRange
+				FROM ScalewaySecurityGroupRule r
+				WHERE r.direction = 'inbound'
+				AND r.action = 'accept'
+				AND r.ipRange = '0.0.0.0/0'
+				AND r.destPortFrom <= 22 AND r.destPortTo >= 22
+				""" );
+		List<Object[]> sgRuleSshResult = sgRuleSshQuery.getResultList();
+		System.out.println( "Scaleway Security Group Rules - SSH port 22 open to internet" );
+		print( sgRuleSshResult );
+
+		// Secrets: list all secrets
+		TypedQuery<Object[]> secretQuery = session.createQuery(
+				"SELECT s.id, s.name, s.status, s.versionCount, s.region FROM ScalewaySecret s" );
+		List<Object[]> secretResult = secretQuery.getResultList();
+		System.out.println( "Scaleway Secrets" );
+		print( secretResult );
+
+		// Secrets: find locked or empty secrets (hygiene)
+		TypedQuery<Object[]> secretLockedQuery = session.createQuery(
+				"""
+				SELECT s.id, s.name, s.status, s.versionCount
+				FROM ScalewaySecret s
+				WHERE s.status = 'locked' OR s.versionCount = 0
+				""" );
+		List<Object[]> secretLockedResult = secretLockedQuery.getResultList();
+		System.out.println( "Scaleway Secrets - locked or no versions" );
+		print( secretLockedResult );
+
+		// Secret Versions: find disabled versions (rotation hygiene)
+		TypedQuery<Object[]> secretVersionQuery = session.createQuery(
+				"SELECT v.secretId, v.revision, v.status, v.createdAt FROM ScalewaySecretVersion v WHERE v.status = 'disabled'" );
+		List<Object[]> secretVersionResult = secretVersionQuery.getResultList();
+		System.out.println( "Scaleway Secret Versions - disabled" );
+		print( secretVersionResult );
+
+		// KMS Keys: list all keys
+		TypedQuery<Object[]> kmsKeyQuery = session.createQuery(
+				"SELECT k.id, k.name, k.state, k.algorithm, k.rotationEnabled, k.region FROM ScalewayKmsKey k" );
+		List<Object[]> kmsKeyResult = kmsKeyQuery.getResultList();
+		System.out.println( "Scaleway KMS Keys" );
+		print( kmsKeyResult );
+
+		// KMS Keys: find enabled keys with no rotation policy (compliance risk)
+		TypedQuery<Object[]> kmsNoRotationQuery = session.createQuery(
+				"""
+				SELECT k.id, k.name, k.region
+				FROM ScalewayKmsKey k
+				WHERE k.state = 'enabled' AND k.rotationEnabled = false
+				""" );
+		List<Object[]> kmsNoRotationResult = kmsNoRotationQuery.getResultList();
+		System.out.println( "Scaleway KMS Keys - no rotation policy (enabled keys)" );
+		print( kmsNoRotationResult );
+
+		// Audit Events: list recent events
+		TypedQuery<Object[]> auditQuery = session.createQuery(
+				"SELECT e.id, e.recordedAt, e.apiMethod, e.status, e.principalId, e.sourceIp FROM ScalewayAuditEvent e" );
+		List<Object[]> auditResult = auditQuery.getResultList();
+		System.out.println( "Scaleway Audit Events" );
+		print( auditResult );
+
+		// Audit Events: find forbidden access attempts
+		TypedQuery<Object[]> auditForbiddenQuery = session.createQuery(
+				"""
+				SELECT e.recordedAt, e.apiMethod, e.principalId, e.principalType, e.sourceIp
+				FROM ScalewayAuditEvent e
+				WHERE e.status = 'forbidden'
+				""" );
+		List<Object[]> auditForbiddenResult = auditForbiddenQuery.getResultList();
+		System.out.println( "Scaleway Audit Events - forbidden access attempts" );
+		print( auditForbiddenResult );
+
+		// Audit Events: find destructive actions (deletes)
+		TypedQuery<Object[]> auditDeleteQuery = session.createQuery(
+				"""
+				SELECT e.recordedAt, e.apiMethod, e.principalId, e.resourceType, e.resourceId
+				FROM ScalewayAuditEvent e
+				WHERE e.apiMethod LIKE '%Delete%' AND e.status = 'success'
+				""" );
+		List<Object[]> auditDeleteResult = auditDeleteQuery.getResultList();
+		System.out.println( "Scaleway Audit Events - successful destructive operations" );
+		print( auditDeleteResult );
+
+		// Kubernetes: list all clusters
+		TypedQuery<Object[]> k8sQuery = session.createQuery(
+				"SELECT c.id, c.name, c.version, c.status, c.upgradeAvailable, c.privateNetworkEnabled, c.region FROM ScalewayK8sCluster c" );
+		List<Object[]> k8sResult = k8sQuery.getResultList();
+		System.out.println( "Scaleway Kubernetes Clusters" );
+		print( k8sResult );
+
+		// Kubernetes: find clusters with pending upgrades
+		TypedQuery<Object[]> k8sUpgradeQuery = session.createQuery(
+				"SELECT c.id, c.name, c.version FROM ScalewayK8sCluster c WHERE c.upgradeAvailable = true AND c.status = 'ready'" );
+		List<Object[]> k8sUpgradeResult = k8sUpgradeQuery.getResultList();
+		System.out.println( "Scaleway Kubernetes Clusters - upgrade available" );
+		print( k8sUpgradeResult );
+
+		// Kubernetes: find ready clusters not on a private network
+		TypedQuery<Object[]> k8sNoPrivNetQuery = session.createQuery(
+				"""
+				SELECT c.id, c.name, c.region
+				FROM ScalewayK8sCluster c
+				WHERE c.privateNetworkEnabled = false AND c.status = 'ready'
+				""" );
+		List<Object[]> k8sNoPrivNetResult = k8sNoPrivNetQuery.getResultList();
+		System.out.println( "Scaleway Kubernetes Clusters - no private network (ready)" );
+		print( k8sNoPrivNetResult );
+
+		// Registry: list all namespaces
+		TypedQuery<Object[]> regNsQuery = session.createQuery(
+				"SELECT n.id, n.name, n.publiclyAccessible, n.imageCount, n.region FROM ScalewayRegistryNamespace n" );
+		List<Object[]> regNsResult = regNsQuery.getResultList();
+		System.out.println( "Scaleway Registry Namespaces" );
+		print( regNsResult );
+
+		// Registry: find publicly accessible namespaces
+		TypedQuery<Object[]> regNsPublicQuery = session.createQuery(
+				"SELECT n.id, n.name, n.endpoint FROM ScalewayRegistryNamespace n WHERE n.publiclyAccessible = true" );
+		List<Object[]> regNsPublicResult = regNsPublicQuery.getResultList();
+		System.out.println( "Scaleway Registry Namespaces - publicly accessible" );
+		print( regNsPublicResult );
+
+		// Registry Images: find publicly visible images
+		TypedQuery<Object[]> regImgPublicQuery = session.createQuery(
+				"SELECT i.id, i.name, i.namespaceId, i.region FROM ScalewayRegistryImage i WHERE i.visibility = 'public'" );
+		List<Object[]> regImgPublicResult = regImgPublicQuery.getResultList();
+		System.out.println( "Scaleway Registry Images - public visibility" );
+		print( regImgPublicResult );
+
+		// VPCs: list all VPCs
+		TypedQuery<Object[]> vpcQuery = session.createQuery(
+				"SELECT v.id, v.name, v.region, v.defaultVpc, v.routingEnabled FROM ScalewayVpc v" );
+		List<Object[]> vpcResult = vpcQuery.getResultList();
+		System.out.println( "Scaleway VPCs" );
+		print( vpcResult );
+
+		// VPCs: find default VPCs with routing enabled (lateral movement risk)
+		TypedQuery<Object[]> vpcRiskQuery = session.createQuery(
+				"""
+				SELECT v.id, v.name, v.region
+				FROM ScalewayVpc v
+				WHERE v.defaultVpc = true AND v.routingEnabled = true
+				""" );
+		List<Object[]> vpcRiskResult = vpcRiskQuery.getResultList();
+		System.out.println( "Scaleway VPCs - default VPC with routing enabled (lateral movement risk)" );
+		print( vpcRiskResult );
+
+		// Private Networks: list all
+		TypedQuery<Object[]> pnQuery = session.createQuery(
+				"SELECT pn.id, pn.name, pn.vpcId, pn.region FROM ScalewayPrivateNetwork pn" );
+		List<Object[]> pnResult = pnQuery.getResultList();
+		System.out.println( "Scaleway Private Networks" );
+		print( pnResult );
+
+		// Object Storage: list all buckets
+		TypedQuery<Object[]> bucketsQuery = session.createQuery(
+				"SELECT b.name, b.region, b.objectCount, b.totalSize FROM ScalewayObjectStorageBucket b" );
+		List<Object[]> bucketsResult = bucketsQuery.getResultList();
+		System.out.println( "Scaleway Object Storage Buckets" );
+		print( bucketsResult );
+
+		// Object Storage: empty buckets (unused resources)
+		TypedQuery<Object[]> emptyBucketsQuery = session.createQuery(
+				"SELECT b.name, b.region FROM ScalewayObjectStorageBucket b WHERE b.objectCount = 0" );
+		List<Object[]> emptyBucketsResult = emptyBucketsQuery.getResultList();
+		System.out.println( "Scaleway Object Storage Buckets - empty (unused)" );
+		print( emptyBucketsResult );
+
+		// Managed Databases: list all
+		TypedQuery<Object[]> dbQuery = session.createQuery(
+				"SELECT d.id, d.name, d.engine, d.haEnabled, d.publiclyAccessible, d.backupRetentionDays, d.region FROM ScalewayDatabase d" );
+		List<Object[]> dbResult = dbQuery.getResultList();
+		System.out.println( "Scaleway Managed Databases" );
+		print( dbResult );
+
+		// Managed Databases: publicly accessible endpoints
+		TypedQuery<Object[]> publicDbQuery = session.createQuery(
+				"SELECT d.id, d.name, d.endpointIp FROM ScalewayDatabase d WHERE d.publiclyAccessible = true" );
+		List<Object[]> publicDbResult = publicDbQuery.getResultList();
+		System.out.println( "Scaleway Managed Databases - publicly accessible" );
+		print( publicDbResult );
+
+		// Managed Databases: short backup retention (< 7 days)
+		TypedQuery<Object[]> shortRetentionDbQuery = session.createQuery(
+				"SELECT d.id, d.name, d.backupRetentionDays FROM ScalewayDatabase d WHERE d.backupRetentionDays < 7" );
+		List<Object[]> shortRetentionDbResult = shortRetentionDbQuery.getResultList();
+		System.out.println( "Scaleway Managed Databases - backup retention < 7 days" );
+		print( shortRetentionDbResult );
+
+		// Serverless Containers: list all
+		TypedQuery<Object[]> containersQuery = session.createQuery(
+				"SELECT c.id, c.name, c.privacy, c.hasEnvVars, c.region FROM ScalewayContainer c" );
+		List<Object[]> containersResult = containersQuery.getResultList();
+		System.out.println( "Scaleway Serverless Containers" );
+		print( containersResult );
+
+		// Serverless Containers: public containers
+		TypedQuery<Object[]> publicContainersQuery = session.createQuery(
+				"SELECT c.id, c.name FROM ScalewayContainer c WHERE c.privacy = 'public'" );
+		List<Object[]> publicContainersResult = publicContainersQuery.getResultList();
+		System.out.println( "Scaleway Serverless Containers - public" );
+		print( publicContainersResult );
+
+		// Serverless Functions: list all
+		TypedQuery<Object[]> functionsQuery = session.createQuery(
+				"SELECT f.id, f.name, f.runtime, f.privacy, f.hasEnvVars, f.region FROM ScalewayFunction f" );
+		List<Object[]> functionsResult = functionsQuery.getResultList();
+		System.out.println( "Scaleway Serverless Functions" );
+		print( functionsResult );
+
+		// Serverless Functions: public functions
+		TypedQuery<Object[]> publicFunctionsQuery = session.createQuery(
+				"SELECT f.id, f.name, f.runtime FROM ScalewayFunction f WHERE f.privacy = 'public'" );
+		List<Object[]> publicFunctionsResult = publicFunctionsQuery.getResultList();
+		System.out.println( "Scaleway Serverless Functions - public" );
+		print( publicFunctionsResult );
+
+		// Block Storage Volumes: unattached volumes
+		TypedQuery<Object[]> unattachedVolumesQuery = session.createQuery(
+				"SELECT v.id, v.name, v.volumeType, v.size, v.zone FROM ScalewayVolume v WHERE v.serverId IS NULL" );
+		List<Object[]> unattachedVolumesResult = unattachedVolumesQuery.getResultList();
+		System.out.println( "Scaleway Volumes - unattached (orphaned)" );
+		print( unattachedVolumesResult );
+
+		// Snapshots: old snapshots (potential cleanup candidates)
+		TypedQuery<Object[]> snapshotsQuery = session.createQuery(
+				"SELECT s.id, s.name, s.state, s.size, s.zone, s.createdAt FROM ScalewaySnapshot s" );
+		List<Object[]> snapshotsResult = snapshotsQuery.getResultList();
+		System.out.println( "Scaleway Snapshots" );
+		print( snapshotsResult );
+
+		// Load Balancers: list all
+		TypedQuery<Object[]> lbsQuery = session.createQuery(
+				"SELECT l.id, l.name, l.status, l.zone FROM ScalewayLoadBalancer l" );
+		List<Object[]> lbsResult = lbsQuery.getResultList();
+		System.out.println( "Scaleway Load Balancers" );
+		print( lbsResult );
+
+		// LB Frontends: non-TLS HTTP frontends
+		TypedQuery<Object[]> httpFrontendsQuery = session.createQuery(
+				"SELECT f.id, f.name, f.lbId, f.protocol, f.inboundPort FROM ScalewayLoadBalancerFrontend f WHERE f.tlsEnabled = false AND f.protocol = 'http'" );
+		List<Object[]> httpFrontendsResult = httpFrontendsQuery.getResultList();
+		System.out.println( "Scaleway LB Frontends - non-TLS HTTP (unencrypted traffic)" );
+		print( httpFrontendsResult );
+
+		// Flexible IPs: unattached (orphaned, costing money)
+		TypedQuery<Object[]> detachedIpsQuery = session.createQuery(
+				"SELECT f.id, f.ipAddress, f.zone FROM ScalewayFlexibleIp f WHERE f.serverId IS NULL" );
+		List<Object[]> detachedIpsResult = detachedIpsQuery.getResultList();
+		System.out.println( "Scaleway Flexible IPs - unattached (orphaned)" );
+		print( detachedIpsResult );
+
+		// Cockpit Alert Managers: regions with alerts disabled or no contact points
+		TypedQuery<Object[]> alertMgrQuery = session.createQuery(
+				"SELECT a.region, a.managedAlertsEnabled, a.contactPointCount FROM ScalewayCockpitAlertManager a WHERE a.managedAlertsEnabled = false OR a.contactPointCount = 0" );
+		List<Object[]> alertMgrResult = alertMgrQuery.getResultList();
+		System.out.println( "Scaleway Cockpit Alert Managers - alerts disabled or no contacts" );
+		print( alertMgrResult );
+
+		// TEM Domains: missing SPF, DKIM, or MX configuration
+		TypedQuery<Object[]> temDomainsQuery = session.createQuery(
+				"SELECT d.id, d.name, d.spfConfigured, d.dkimConfigured, d.mxConfigured FROM ScalewayTemDomain d WHERE d.spfConfigured = false OR d.dkimConfigured = false OR d.mxConfigured = false" );
+		List<Object[]> temDomainsResult = temDomainsQuery.getResultList();
+		System.out.println( "Scaleway TEM Domains - missing SPF/DKIM/MX configuration" );
+		print( temDomainsResult );
 	}
 
 }
