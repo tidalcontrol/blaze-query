@@ -15,12 +15,6 @@ import com.blazebit.query.spi.DataFetcherException;
 import com.blazebit.query.spi.DataFormat;
 import com.microsoft.graph.beta.models.ConditionalAccessPolicy;
 
-import java.io.Serializable;
-
-/**
- * @author Christian Beikov
- * @since 1.0.0
- */
 /**
  * A {@link DataFetcher} for {@link AzureGraphConditionalAccessPolicy} objects via the Microsoft
  * Graph Policies API ({@code /policies/conditionalAccessPolicies}).
