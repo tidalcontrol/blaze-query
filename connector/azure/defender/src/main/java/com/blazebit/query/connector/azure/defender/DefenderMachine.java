@@ -17,19 +17,18 @@ public record DefenderMachine(
 		String id,
 		String computerDnsName,
 		String osPlatform,
-		String osVersion,
+		String version,
 		String osProcessor,
 		String lastSeen,
 		String firstSeen,
 		String agentVersion,
-		String status,
+		String healthStatus,
 		String rbacGroupName,
 		String onboardingStatus,
 		String riskScore,
 		String exposureLevel,
 		Boolean isAadJoined,
 		String aadDeviceId,
-		String defenderAvStatus,
 		String managedBy) {
 
 	static DefenderMachine fromJson(String tenantId, JsonNode node) {
@@ -38,19 +37,18 @@ public record DefenderMachine(
 				textOrNull( node, "id" ),
 				textOrNull( node, "computerDnsName" ),
 				textOrNull( node, "osPlatform" ),
-				textOrNull( node, "osVersion" ),
+				textOrNull( node, "version" ),
 				textOrNull( node, "osProcessor" ),
 				textOrNull( node, "lastSeen" ),
 				textOrNull( node, "firstSeen" ),
 				textOrNull( node, "agentVersion" ),
-				textOrNull( node, "status" ),
+				textOrNull( node, "healthStatus" ),
 				textOrNull( node, "rbacGroupName" ),
 				textOrNull( node, "onboardingStatus" ),
 				textOrNull( node, "riskScore" ),
 				textOrNull( node, "exposureLevel" ),
 				boolOrNull( node, "isAadJoined" ),
 				textOrNull( node, "aadDeviceId" ),
-				textOrNull( node, "defenderAvStatus" ),
 				textOrNull( node, "managedBy" ) );
 	}
 

@@ -22,6 +22,7 @@ public final class DefenderSchemaProvider implements QuerySchemaProvider {
 	public Set<? extends DataFetcher<?>> resolveSchemaObjects(ConfigurationProvider configurationProvider) {
 		return Set.of(
 				DefenderMachineDataFetcher.INSTANCE,
+				DefenderMachineAvHealthDataFetcher.INSTANCE,
 				DefenderAlertDataFetcher.INSTANCE,
 				DefenderVulnerabilityDataFetcher.INSTANCE,
 				DefenderRecommendationDataFetcher.INSTANCE );

@@ -33,14 +33,14 @@ public class DefenderQueryTest {
 	private static DefenderMachine windowsMachine() throws Exception {
 		return DefenderMachine.fromJson( "tenant1", MAPPER.readTree(
 				"{\"id\":\"machine1\",\"computerDnsName\":\"win-host\",\"osPlatform\":\"Windows10\"," +
-				"\"riskScore\":\"High\",\"exposureLevel\":\"High\",\"status\":\"Active\"," +
+				"\"riskScore\":\"High\",\"exposureLevel\":\"High\",\"healthStatus\":\"Active\"," +
 				"\"onboardingStatus\":\"Onboarded\",\"isAadJoined\":true}" ) );
 	}
 
 	private static DefenderMachine linuxMachine() throws Exception {
 		return DefenderMachine.fromJson( "tenant1", MAPPER.readTree(
 				"{\"id\":\"machine2\",\"computerDnsName\":\"linux-host\",\"osPlatform\":\"Linux\"," +
-				"\"riskScore\":\"Low\",\"exposureLevel\":\"Low\",\"status\":\"Active\"," +
+				"\"riskScore\":\"Low\",\"exposureLevel\":\"Low\",\"healthStatus\":\"Active\"," +
 				"\"onboardingStatus\":\"Onboarded\",\"isAadJoined\":false}" ) );
 	}
 
