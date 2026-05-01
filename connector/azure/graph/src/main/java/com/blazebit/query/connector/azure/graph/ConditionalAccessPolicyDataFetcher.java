@@ -16,6 +16,11 @@ import com.blazebit.query.spi.DataFormat;
 import com.microsoft.graph.beta.models.ConditionalAccessPolicy;
 
 /**
+ * A {@link DataFetcher} for {@link AzureGraphConditionalAccessPolicy} objects via the Microsoft
+ * Graph Policies API ({@code /policies/conditionalAccessPolicies}).
+ *
+ * <p>Requires {@link AzureGraphConnectorConfig#GRAPH_SERVICE_CLIENT} to be configured.
+ *
  * @author Christian Beikov
  * @since 1.0.0
  */
@@ -32,13 +37,24 @@ public class ConditionalAccessPolicyDataFetcher implements DataFetcher<AzureGrap
 			List<AzureGraphClientAccessor> accessors = AzureGraphConnectorConfig.GRAPH_SERVICE_CLIENT.getAll( context );
 			List<AzureGraphConditionalAccessPolicy> list = new ArrayList<>();
 			for ( AzureGraphClientAccessor accessor : accessors ) {
-				for ( ConditionalAccessPolicy conditionalAccessPolicy : accessor.getGraphServiceClient().policies().conditionalAccessPolicies().get().getValue() ) {
-					list.add( new AzureGraphConditionalAccessPolicy( accessor.getTenantId(), conditionalAccessPolicy ) );
+				var page = accessor.getGraphServiceClient().policies().conditionalAccessPolicies().get();
+				while ( page != null && page.getValue() != null ) {
+					for ( ConditionalAccessPolicy policy : page.getValue() ) {
+						list.add( new AzureGraphConditionalAccessPolicy( accessor.getTenantId(), policy ) );
+					}
+					String nextLink = page.getOdataNextLink();
+					if ( nextLink == null ) {
+						break;
+					}
+					page = accessor.getGraphServiceClient().policies().conditionalAccessPolicies().withUrl( nextLink ).get();
 				}
 			}
 			return list;
 		}
-		catch (RuntimeException e) {
+		catch (DataFetcherException e) {
+			throw e;
+		}
+		catch (Exception e) {
 			throw new DataFetcherException( "Could not fetch conditional access policy list", e );
 		}
 	}
