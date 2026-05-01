@@ -43,7 +43,7 @@ public class HubspotAuditLogDataFetcher implements DataFetcher<HubspotAuditLog>,
 	public List<HubspotAuditLog> fetch(DataFetchContext context) {
 		try {
 			List<HubspotClient> clients = HubspotConnectorConfig.HUBSPOT_CLIENT.getAll( context );
-			Duration maxAge = HubspotConnectorConfig.AUDIT_LOGS_MAX_AGE.get( context );
+			Duration maxAge = HubspotConnectorConfig.AUDIT_LOGS_MAX_AGE.find( context );
 			if ( maxAge == null ) {
 				maxAge = DEFAULT_MAX_AGE;
 			}
