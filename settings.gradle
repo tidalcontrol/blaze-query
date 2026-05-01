@@ -91,9 +91,9 @@ include(':blaze-query-connector-linear')
 include(':blaze-query-connector-scaleway')
 include(':blaze-query-connector-vercel')
 include(':blaze-query-connector-vercel-jersey3')
+include(':blaze-query-connector-hubspot')
 
 include(':blaze-query-connector-observatory')
-
 
 project(":blaze-query-core").projectDir = file('core')
 project(":blaze-query-core-api").projectDir = file('core/api')
@@ -170,3 +170,4 @@ project(":blaze-query-connector-google-gcp-container").projectDir = file('connec
 project(":blaze-query-connector-google-gcp-kms").projectDir = file('connector/google/gcp/kms')
 project(":blaze-query-connector-google-gcp-dns").projectDir = file('connector/google/gcp/dns')
 project(":blaze-query-connector-observatory").projectDir = file('connector/observatory')
+project(":blaze-query-connector-hubspot").projectDir = file('connector/hubspot')

@@ -72,6 +72,7 @@ dependencies {
     api project(':blaze-query-connector-linear')
     api project(':blaze-query-connector-scaleway')
     api project(':blaze-query-connector-observatory')
+    api project(':blaze-query-connector-hubspot')
     runtimeOnly libs.blaze.persistence.integration.hibernate6
 }
 
