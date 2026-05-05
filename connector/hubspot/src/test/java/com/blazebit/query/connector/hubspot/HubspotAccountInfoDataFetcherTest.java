@@ -39,6 +39,7 @@ class HubspotAccountInfoDataFetcherTest {
 				12345L,
 				"Europe/Berlin",
 				"EUR",
+				List.of(),
 				"+01:00",
 				3600000L,
 				"app.hubspot.com",
@@ -52,6 +53,7 @@ class HubspotAccountInfoDataFetcherTest {
 				67890L,
 				"US/Eastern",
 				"USD",
+				List.of( "CAD", "MXN" ),
 				"-05:00",
 				-18000000L,
 				"app.hubspot.com",
@@ -65,6 +67,7 @@ class HubspotAccountInfoDataFetcherTest {
 				99999L,
 				"US/Eastern",
 				"USD",
+				List.of(),
 				"-05:00",
 				-18000000L,
 				"app.hubspot.com",
@@ -81,11 +84,12 @@ class HubspotAccountInfoDataFetcherTest {
 			session.put( HubspotAccountInfo.class, List.of( euPortal() ) );
 
 			var result = session.createQuery(
-					"SELECT a.portalId, a.dataHostingLocation, a.accountType FROM HubspotAccountInfo a",
+					"SELECT a.portalId, a.dataHostingLocation, a.accountType, a.companyCurrency FROM HubspotAccountInfo a",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 1 );
 			assertThat( result.get( 0 ).get( "dataHostingLocation" ) ).isEqualTo( "eu1" );
+			assertThat( result.get( 0 ).get( "companyCurrency" ) ).isEqualTo( "EUR" );
 		}
 	}
 
@@ -94,7 +98,6 @@ class HubspotAccountInfoDataFetcherTest {
 		try (var session = CONTEXT.createSession()) {
 			session.put( HubspotAccountInfo.class, List.of( euPortal(), usPortal() ) );
 
-			// EU data hosting is required for GDPR data-residency compliance
 			var result = session.createQuery(
 					"SELECT a.portalId, a.dataHostingLocation FROM HubspotAccountInfo a"
 							+ " WHERE a.dataHostingLocation = 'eu1'",

@@ -23,14 +23,15 @@ queryContextBuilder.setProperty(HubspotConnectorConfig.HUBSPOT_CLIENT.getPropert
 
 Use a [HubSpot Private App](https://developers.hubspot.com/docs/api/private-apps) token, not an OAuth token. The token is passed as a `Bearer` header on every request.
 
-**Optional — time window for activity fetchers (audit logs, login, security):**
+**Optional — time window for the audit log and security activity fetchers:**
 ```java
 queryContextBuilder.setProperty(
     HubspotConnectorConfig.AUDIT_LOGS_MAX_AGE.getPropertyName(),
     Duration.ofHours(72)
 );
 ```
-Defaults to `Duration.ofHours(24)` when not set.
+Defaults to `Duration.ofHours(24)` when not set. Does not apply to the login
+activity fetcher — that endpoint does not support time-range filtering.
 
 **Required OAuth scopes by fetcher:**
 
@@ -48,16 +49,20 @@ Defaults to `Duration.ofHours(24)` when not set.
 
 #### `HubspotUser` — portal users (`/settings/v3/users`)
 
+Mirrors the `PublicUser` schema. `status`, `createdAt`, and `updatedAt` are not in the OpenAPI spec — they have been observed on responses and are retained for backwards compatibility but may be `null`.
+
 | Field | Type | Notes |
 |---|---|---|
 | `id` | String | Portal user ID |
 | `email` | String | Join with `HubspotOwner.email` to cross-reference CRM access |
+| `firstName`, `lastName` | String | |
+| `roleId` | String | Single legacy role ID |
 | `roleIds` | List\<String\> | Join with `HubspotRole.id` to resolve permissions |
 | `primaryTeamId` | String | |
+| `secondaryTeamIds` | List\<String\> | Additional teams |
 | `superAdmin` | Boolean | Filter `superAdmin = true` to audit privileged accounts |
-| `status` | String | `ACTIVE` or `INACTIVE` |
-| `createdAt` | OffsetDateTime | |
-| `updatedAt` | OffsetDateTime | Use to detect stale/inactive accounts |
+| `status` | String | `ACTIVE` or `INACTIVE` (undocumented; may be `null`) |
+| `createdAt`, `updatedAt` | OffsetDateTime | Undocumented; may be `null` |
 
 #### `HubspotRole` — permission roles (`/settings/v3/users/roles`)
 
@@ -69,13 +74,18 @@ Defaults to `Duration.ofHours(24)` when not set.
 
 #### `HubspotOwner` — CRM record owners (`/crm/v3/owners`)
 
+Mirrors the `PublicOwner` schema.
+
 | Field | Type | Notes |
 |---|---|---|
 | `id` | String | CRM owner ID |
+| `type` | String | `PERSON` or `QUEUE` |
 | `userId` | Integer | Matches `HubspotUser.id` (as integer) |
+| `userIdIncludingInactive` | Integer | User ID including deactivated users |
 | `email` | String | Join with `HubspotUser.email` |
 | `firstName`, `lastName` | String | |
 | `archived` | Boolean | `false` = currently active CRM owner |
+| `teams` | List\<OwnerTeam\> | Embedded teams with `id`, `name`, `primary` (different schema from `HubspotTeam`) |
 | `createdAt`, `updatedAt` | OffsetDateTime | |
 
 #### `HubspotTeam` — org teams (`/settings/v3/users/teams`)
@@ -90,13 +100,18 @@ Defaults to `Duration.ofHours(24)` when not set.
 
 #### `HubspotAccountInfo` — portal details (`/account-info/v3/details`)
 
+Mirrors the `PortalInformationResponse` schema. The currency field is named `companyCurrency` (not `currency`).
+
 | Field | Type | Notes |
 |---|---|---|
 | `portalId` | Long | |
 | `dataHostingLocation` | String | `na1` = North America, `eu1` = EU — key for GDPR data-residency |
-| `accountType` | String | `STANDARD`, `SANDBOX`, `DEVELOPER_TEST`, `LEGACY_DEVELOPER` |
+| `accountType` | String | `STANDARD`, `SANDBOX`, `DEVELOPER_TEST`, `APP_DEVELOPER` |
 | `timeZone` | String | IANA identifier |
-| `currency` | String | ISO-4217 |
+| `companyCurrency` | String | Primary ISO-4217 currency code |
+| `additionalCurrencies` | List\<String\> | Additional ISO-4217 currency codes |
+| `utcOffset`, `utcOffsetMilliseconds` | String / Long | |
+| `uiDomain` | String | UI subdomain |
 
 #### `HubspotSubscriptionDefinition` — GDPR consent categories (`/communication-preferences/v3/definitions`)
 
@@ -114,6 +129,8 @@ Defaults to `Duration.ofHours(24)` when not set.
 
 #### `HubspotAuditLog` — audit events (`/account-info/v3/activity/audit-logs`) — Enterprise only
 
+Mirrors the `PublicApiUserActionEvent` schema. The endpoint does not return a `targetObjectType` field.
+
 | Field | Type | Notes |
 |---|---|---|
 | `id` | String | |
@@ -121,42 +138,44 @@ Defaults to `Duration.ofHours(24)` when not set.
 | `subCategory` | String | `CREATED`, `UPDATED`, `DELETED`, `PUBLISHED`, … |
 | `action` | String | Human-readable description |
 | `targetObjectId` | String | ID of the affected object |
-| `targetObjectType` | String | |
 | `occurredAt` | String | ISO-8601 timestamp |
-| `actingUser.userId` | String | Nested — actor's user ID |
+| `actingUser.userId` | Integer | Nested — actor's user ID |
 | `actingUser.userEmail` | String | Nested — actor's email |
 
 #### `HubspotLoginActivity` — login events (`/account-info/v3/activity/login`) — Enterprise only
 
+Mirrors the `PublicLoginAudit` schema. The endpoint does not return MFA/SSO usage,
+authentication method, or device classification fields.
+
 | Field | Type | Notes |
 |---|---|---|
 | `id` | String | |
-| `userId` | String | |
-| `userEmail` | String | |
-| `occurredAt` | String | ISO-8601 |
-| `loginType` | String | `WEB`, `MOBILE_APP`, `API` |
-| `loginMethod` | String | `PASSWORD`, `SSO`, `TWO_FACTOR`, `OAUTH` |
-| `loginStatus` | String | `SUCCESS` or `FAILURE` |
-| `mfaUsed` | Boolean | **Primary 2FA audit field** — `false` on a successful login = no MFA |
-| `ssoUsed` | Boolean | `false` on a portal that enforces SSO = policy violation |
+| `loginAt` | String | ISO-8601 |
+| `loginSucceeded` | Boolean | `true` for successful logins, `false` for failed attempts |
+| `userId` | Integer | Portal user ID — cast to VARCHAR to join `HubspotUser.id` |
+| `email` | String | User email |
 | `ipAddress` | String | |
+| `userAgent` | String | Raw User-Agent string |
+| `location` | String | Approximate human-readable location |
 | `countryCode` | String | ISO-3166-1 alpha-2 |
 | `regionCode` | String | |
-| `browser` | String | |
-| `device` | String | `DESKTOP`, `MOBILE` |
 
 #### `HubspotSecurityActivity` — security config changes (`/account-info/v3/activity/security`) — Enterprise only
 
+Mirrors the `HydratedCriticalAction` schema. The endpoint does not return severity, affected-user, or free-form detail fields — only the `type` enum categorises the action.
+
 | Field | Type | Notes |
 |---|---|---|
 | `id` | String | |
-| `eventType` | String | `MFA_ENABLED`, `MFA_DISABLED`, `SSO_CONFIGURED`, `SSO_CHANGED`, `PASSWORD_RESET`, `API_TOKEN_CREATED`, `API_TOKEN_REVOKED`, `USER_ADDED`, `USER_REMOVED`, `PERMISSION_CHANGED`, `IP_WHITELIST_MODIFIED` |
-| `occurredAt` | String | ISO-8601 |
-| `actingUserId` | String | |
-| `actingUserEmail` | String | |
-| `affectedUserId` | String | |
-| `severity` | String | `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` |
-| `details` | String | Additional context from HubSpot |
+| `type` | String | Enum, e.g. `MFA_ENABLED`, `MFA_DISABLED`, `SSO_CONFIGURED`, `PERMISSION_CHANGED`, `API_TOKEN_CREATED`, … |
+| `createdAt` | String | ISO-8601 timestamp |
+| `userId` | Integer | Portal user ID associated with the action |
+| `actingUser` | String | Display name (or email) of the actor — plain string, not a nested object |
+| `ipAddress` | String | |
+| `location` | String | Approximate human-readable location |
+| `countryCode`, `regionCode` | String | |
+| `objectId` | String | ID of the action's target, when applicable |
+| `infoUrl` | String | Link to additional information |
 
 ---
 
@@ -186,18 +205,25 @@ WHERE status = 'INACTIVE'
 SELECT id, email, primaryTeamId FROM HubspotUser WHERE superAdmin = true
 ```
 
-**2FA / MFA compliance — logins without MFA** *(Enterprise only)*
+**Failed login attempts** *(Enterprise only)*
 ```sql
-SELECT userEmail, occurredAt, loginMethod, ipAddress, countryCode
+SELECT email, loginAt, ipAddress, countryCode, userAgent
 FROM HubspotLoginActivity
-WHERE mfaUsed = false AND loginStatus = 'SUCCESS'
+WHERE loginSucceeded = false
+```
+
+**Logins from unexpected countries** *(Enterprise only)*
+```sql
+SELECT email, loginAt, countryCode, ipAddress
+FROM HubspotLoginActivity
+WHERE countryCode NOT IN ('US', 'DE', 'GB')
 ```
 
 **MFA disabled events** *(Enterprise only)*
 ```sql
-SELECT actingUserEmail, occurredAt, severity, details
+SELECT actingUser, createdAt, ipAddress, infoUrl
 FROM HubspotSecurityActivity
-WHERE eventType = 'MFA_DISABLED'
+WHERE type = 'MFA_DISABLED'
 ```
 
 **GDPR data-residency**
@@ -218,11 +244,11 @@ WHERE defaultOptIn = true AND active = true
 
 ### Caveats and Limitations
 
-1. **No per-user MFA status field.** The Settings Users API (`/settings/v3/users`) does not expose whether MFA is enabled for a user. The only way to audit per-user 2FA compliance is via `HubspotLoginActivity.mfaUsed` — which requires an Enterprise subscription. For non-Enterprise portals, MFA enforcement must be verified in the HubSpot Security settings UI.
+1. **No per-user MFA status field, and no MFA usage on login events.** The Settings Users API (`/settings/v3/users`) does not expose whether MFA is enabled for a user, and the login activity endpoint (`PublicLoginAudit`) does *not* report whether MFA or SSO was used for a given login. Per-user 2FA compliance can only be confirmed via the `HubspotSecurityActivity` event stream (`MFA_ENABLED`/`MFA_DISABLED`) or in the HubSpot Security settings UI.
 
 2. **Enterprise-only APIs.** `HubspotAuditLogDataFetcher`, `HubspotLoginActivityDataFetcher`, and `HubspotSecurityActivityDataFetcher` all require an Enterprise HubSpot subscription and the `account-info.security.read` scope. On non-Enterprise portals these fetchers will throw a `DataFetcherException` (HTTP 403). Register only the fetchers your subscription supports, or handle the exception in your integration.
 
-3. **Activity fetcher time window.** Audit log, login, and security activity fetchers default to a 24-hour lookback window. Configure `HubspotConnectorConfig.AUDIT_LOGS_MAX_AGE` to extend this. The HubSpot API enforces a maximum lookback of 90 days.
+3. **Activity fetcher time window.** Audit log and security activity fetchers default to a 24-hour lookback window. Configure `HubspotConnectorConfig.AUDIT_LOGS_MAX_AGE` to extend this. The HubSpot API enforces a maximum lookback of 90 days. The login activity endpoint does not support time-range query parameters — it returns the full set of available events, paginated.
 
 4. **`isActive` / `isDefault` / `isInternal` field naming.** Apache Calcite parses identifiers starting with `is` as the `IS` SQL keyword, causing parse errors. The `HubspotSubscriptionDefinition` record exposes these as `active`, `defaultOptIn`, and `internal` instead, with `@JsonProperty` annotations to preserve the original JSON field names. Always use the Java record component names in SQL queries.
 

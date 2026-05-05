@@ -16,7 +16,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for {@link HubspotSecurityActivityDataFetcher} covering security
- * configuration change monitoring.
+ * configuration change monitoring against the {@code HydratedCriticalAction}
+ * schema.
  */
 class HubspotSecurityActivityDataFetcherTest {
 
@@ -33,27 +34,32 @@ class HubspotSecurityActivityDataFetcherTest {
 
 	private static HubspotSecurityActivity mfaEnabled() {
 		return new HubspotSecurityActivity( "sec-1", "MFA_ENABLED", "2024-03-01T08:00:00Z",
-				"user-1", "admin@example.com", "user-5", "LOW", "MFA enabled for user" );
+				1, "admin@example.com", "203.0.113.1", "Munich, Germany", "DE", "BY",
+				"user-5", "https://app.hubspot.com/security/1" );
 	}
 
 	private static HubspotSecurityActivity mfaDisabled() {
 		return new HubspotSecurityActivity( "sec-2", "MFA_DISABLED", "2024-03-01T09:00:00Z",
-				"user-1", "admin@example.com", "user-6", "HIGH", "MFA disabled for user" );
+				1, "admin@example.com", "203.0.113.1", "Munich, Germany", "DE", "BY",
+				"user-6", "https://app.hubspot.com/security/2" );
 	}
 
 	private static HubspotSecurityActivity ssoConfigured() {
 		return new HubspotSecurityActivity( "sec-3", "SSO_CONFIGURED", "2024-03-01T10:00:00Z",
-				"user-1", "admin@example.com", null, "HIGH", "SSO configured" );
+				1, "admin@example.com", "203.0.113.1", "Munich, Germany", "DE", "BY",
+				null, "https://app.hubspot.com/security/3" );
 	}
 
 	private static HubspotSecurityActivity apiTokenCreated() {
 		return new HubspotSecurityActivity( "sec-4", "API_TOKEN_CREATED", "2024-03-01T11:00:00Z",
-				"user-2", "developer@example.com", null, "MEDIUM", "New API token created" );
+				2, "developer@example.com", "198.51.100.5", "San Francisco, US", "US", "CA",
+				null, "https://app.hubspot.com/security/4" );
 	}
 
 	private static HubspotSecurityActivity permissionChanged() {
 		return new HubspotSecurityActivity( "sec-5", "PERMISSION_CHANGED", "2024-03-01T12:00:00Z",
-				"user-1", "admin@example.com", "user-7", "MEDIUM", "User permissions updated" );
+				1, "admin@example.com", "203.0.113.1", "Munich, Germany", "DE", "BY",
+				"user-7", "https://app.hubspot.com/security/5" );
 	}
 
 	// --- tests ---------------------------------------------------------------
@@ -65,7 +71,7 @@ class HubspotSecurityActivityDataFetcherTest {
 					List.of( mfaEnabled(), mfaDisabled(), ssoConfigured(), apiTokenCreated(), permissionChanged() ) );
 
 			var result = session.createQuery(
-					"SELECT s.id, s.eventType, s.severity FROM HubspotSecurityActivity s",
+					"SELECT s.id, s.type, s.createdAt FROM HubspotSecurityActivity s",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 5 );
@@ -79,8 +85,8 @@ class HubspotSecurityActivityDataFetcherTest {
 					List.of( mfaEnabled(), mfaDisabled(), ssoConfigured(), apiTokenCreated(), permissionChanged() ) );
 
 			var result = session.createQuery(
-					"SELECT s.id, s.eventType, s.affectedUserId FROM HubspotSecurityActivity s"
-							+ " WHERE s.eventType IN ('MFA_ENABLED', 'MFA_DISABLED')",
+					"SELECT s.id, s.type, s.objectId FROM HubspotSecurityActivity s"
+							+ " WHERE s.type IN ('MFA_ENABLED', 'MFA_DISABLED')",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 2 );
@@ -93,14 +99,13 @@ class HubspotSecurityActivityDataFetcherTest {
 			session.put( HubspotSecurityActivity.class,
 					List.of( mfaEnabled(), mfaDisabled(), ssoConfigured(), apiTokenCreated(), permissionChanged() ) );
 
-			// MFA_DISABLED is a high-risk event — someone turned off 2FA for a user
 			var result = session.createQuery(
-					"SELECT s.id, s.actingUserEmail, s.affectedUserId, s.occurredAt FROM HubspotSecurityActivity s"
-							+ " WHERE s.eventType = 'MFA_DISABLED'",
+					"SELECT s.id, s.actingUser, s.objectId, s.createdAt FROM HubspotSecurityActivity s"
+							+ " WHERE s.type = 'MFA_DISABLED'",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 1 );
-			assertThat( result.get( 0 ).get( "actingUserEmail" ) ).isEqualTo( "admin@example.com" );
+			assertThat( result.get( 0 ).get( "actingUser" ) ).isEqualTo( "admin@example.com" );
 		}
 	}
 
@@ -111,27 +116,11 @@ class HubspotSecurityActivityDataFetcherTest {
 					List.of( mfaEnabled(), mfaDisabled(), ssoConfigured(), apiTokenCreated(), permissionChanged() ) );
 
 			var result = session.createQuery(
-					"SELECT s.id, s.actingUserEmail, s.occurredAt FROM HubspotSecurityActivity s"
-							+ " WHERE s.eventType IN ('SSO_CONFIGURED', 'SSO_CHANGED')",
+					"SELECT s.id, s.actingUser, s.createdAt FROM HubspotSecurityActivity s"
+							+ " WHERE s.type IN ('SSO_CONFIGURED', 'SSO_CHANGED')",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 1 );
-		}
-	}
-
-	@Test
-	void should_find_high_severity_events() {
-		try (var session = CONTEXT.createSession()) {
-			session.put( HubspotSecurityActivity.class,
-					List.of( mfaEnabled(), mfaDisabled(), ssoConfigured(), apiTokenCreated(), permissionChanged() ) );
-
-			var result = session.createQuery(
-					"SELECT s.id, s.eventType, s.actingUserEmail FROM HubspotSecurityActivity s"
-							+ " WHERE s.severity = 'HIGH' OR s.severity = 'CRITICAL'",
-					new TypeReference<Map<String, Object>>() {} ).getResultList();
-
-			// MFA_DISABLED and SSO_CONFIGURED are both HIGH
-			assertThat( result ).hasSize( 2 );
 		}
 	}
 
@@ -142,11 +131,26 @@ class HubspotSecurityActivityDataFetcherTest {
 					List.of( mfaEnabled(), mfaDisabled(), ssoConfigured(), apiTokenCreated(), permissionChanged() ) );
 
 			var result = session.createQuery(
-					"SELECT s.id, s.actingUserEmail FROM HubspotSecurityActivity s"
-							+ " WHERE s.eventType IN ('API_TOKEN_CREATED', 'API_TOKEN_REVOKED')",
+					"SELECT s.id, s.actingUser FROM HubspotSecurityActivity s"
+							+ " WHERE s.type IN ('API_TOKEN_CREATED', 'API_TOKEN_REVOKED')",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 1 );
+		}
+	}
+
+	@Test
+	void should_find_events_by_acting_user() {
+		try (var session = CONTEXT.createSession()) {
+			session.put( HubspotSecurityActivity.class,
+					List.of( mfaEnabled(), mfaDisabled(), ssoConfigured(), apiTokenCreated(), permissionChanged() ) );
+
+			var result = session.createQuery(
+					"SELECT s.id, s.type FROM HubspotSecurityActivity s"
+							+ " WHERE s.userId = 1",
+					new TypeReference<Map<String, Object>>() {} ).getResultList();
+
+			assertThat( result ).hasSize( 4 );
 		}
 	}
 
@@ -157,12 +161,12 @@ class HubspotSecurityActivityDataFetcherTest {
 					List.of( mfaEnabled(), mfaDisabled(), ssoConfigured(), apiTokenCreated(), permissionChanged() ) );
 
 			var result = session.createQuery(
-					"SELECT s.id, s.actingUserEmail, s.affectedUserId FROM HubspotSecurityActivity s"
-							+ " WHERE s.eventType = 'PERMISSION_CHANGED'",
+					"SELECT s.id, s.actingUser, s.objectId FROM HubspotSecurityActivity s"
+							+ " WHERE s.type = 'PERMISSION_CHANGED'",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 1 );
-			assertThat( result.get( 0 ).get( "affectedUserId" ) ).isEqualTo( "user-7" );
+			assertThat( result.get( 0 ).get( "objectId" ) ).isEqualTo( "user-7" );
 		}
 	}
 }

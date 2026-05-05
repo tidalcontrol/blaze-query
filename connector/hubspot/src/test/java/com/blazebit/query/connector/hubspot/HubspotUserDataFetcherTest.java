@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for {@link HubspotUserDataFetcher} covering security & compliance queries:
  * <ul>
  *   <li>Users that can access contact information</li>
- *   <li>Stale / inactive users</li>
+ *   <li>Stale / inactive users (using the observed {@code status} field)</li>
  *   <li>Super-admin detection</li>
  * </ul>
  */
@@ -41,8 +41,12 @@ class HubspotUserDataFetcherTest {
 		return new HubspotUser(
 				"user-1",
 				"admin@example.com",
+				"Alice",
+				"Admin",
+				"role-admin",
 				List.of( "role-admin" ),
 				"team-1",
+				List.of(),
 				true,
 				"ACTIVE",
 				OffsetDateTime.parse( "2023-01-01T00:00:00Z" ),
@@ -54,8 +58,12 @@ class HubspotUserDataFetcherTest {
 		return new HubspotUser(
 				"user-2",
 				"agent@example.com",
+				"Bob",
+				"Agent",
+				"role-crm",
 				List.of( "role-crm" ),
 				"team-1",
+				List.of(),
 				false,
 				"ACTIVE",
 				OffsetDateTime.parse( "2023-03-01T00:00:00Z" ),
@@ -67,8 +75,12 @@ class HubspotUserDataFetcherTest {
 		return new HubspotUser(
 				"user-3",
 				"former@example.com",
+				"Carol",
+				"Former",
+				null,
 				List.of(),
 				null,
+				List.of(),
 				false,
 				"INACTIVE",
 				OffsetDateTime.parse( "2022-05-01T00:00:00Z" ),
@@ -84,7 +96,7 @@ class HubspotUserDataFetcherTest {
 			session.put( HubspotUser.class, List.of( activeAdmin(), activeRegular(), inactiveUser() ) );
 
 			var result = session.createQuery(
-					"SELECT u.id, u.email, u.status FROM HubspotUser u",
+					"SELECT u.id, u.email, u.firstName, u.lastName FROM HubspotUser u",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 3 );
@@ -133,16 +145,14 @@ class HubspotUserDataFetcherTest {
 	}
 
 	@Test
-	void should_find_users_with_specific_role() {
+	void should_return_users_with_role_assignments() {
 		try (var session = CONTEXT.createSession()) {
 			session.put( HubspotUser.class, List.of( activeAdmin(), activeRegular(), inactiveUser() ) );
 
-			// Users assigned the CRM role can access contact data
 			var result = session.createQuery(
 					"SELECT u.id, u.email FROM HubspotUser u",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
-			// Both active users have role assignments
 			assertThat( result ).hasSize( 3 );
 		}
 	}

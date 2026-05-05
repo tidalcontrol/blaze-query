@@ -11,8 +11,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Represents a single audit-log event from
  * {@code GET /account-info/v3/activity/audit-logs}.
  *
- * <p>Audit logs record who did what and when inside the portal, supporting
- * logging and monitoring compliance requirements.
+ * <p>Mirrors the {@code PublicApiUserActionEvent} schema. Audit logs record who
+ * did what and when inside the portal, supporting logging and monitoring
+ * compliance requirements.
  *
  * <p>Requires an Enterprise HubSpot subscription and the
  * {@code account-info.security.read} scope.
@@ -37,11 +38,9 @@ public record HubspotAuditLog(
 		String action,
 		/** ID of the object that was acted upon. */
 		String targetObjectId,
-		/** Type of the object that was acted upon. */
-		String targetObjectType,
 		/** ISO-8601 timestamp of the event. */
 		String occurredAt,
-		/** Portal user ID of the actor who performed the action. */
+		/** Portal user that performed the action. */
 		@JsonProperty( "actingUser" ) HubspotAuditLog.ActingUser actingUser
 ) {
 
@@ -50,7 +49,7 @@ public record HubspotAuditLog(
 	 */
 	@JsonIgnoreProperties( ignoreUnknown = true )
 	public record ActingUser(
-			String userId,
+			Integer userId,
 			String userEmail
 	) {
 	}

@@ -6,9 +6,13 @@ package com.blazebit.query.connector.hubspot;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.List;
+
 /**
  * Represents portal-level account information from
  * {@code GET /account-info/v3/details}.
+ *
+ * <p>Mirrors the {@code PortalInformationResponse} schema.
  *
  * <p>Relevant compliance queries:
  * <ul>
@@ -27,8 +31,10 @@ public record HubspotAccountInfo(
 		Long portalId,
 		/** IANA time zone identifier, e.g. {@code "US/Eastern"}. */
 		String timeZone,
-		/** ISO-4217 currency code, e.g. {@code "USD"}. */
-		String currency,
+		/** Primary ISO-4217 currency code for the company, e.g. {@code "USD"}. */
+		String companyCurrency,
+		/** Additional ISO-4217 currency codes configured for the portal. */
+		List<String> additionalCurrencies,
 		String utcOffset,
 		Long utcOffsetMilliseconds,
 		/** Subdomain used for this account's HubSpot UI, e.g. {@code "app.hubspot.com"}. */
@@ -40,8 +46,8 @@ public record HubspotAccountInfo(
 		 */
 		String dataHostingLocation,
 		/**
-		 * Portal account type: {@code "STANDARD"}, {@code "DEVELOPER_TEST"},
-		 * {@code "SANDBOX"}, or {@code "LEGACY_DEVELOPER"}.
+		 * Portal account type: {@code "STANDARD"}, {@code "APP_DEVELOPER"},
+		 * {@code "SANDBOX"}, or {@code "DEVELOPER_TEST"}.
 		 */
 		String accountType
 ) {
