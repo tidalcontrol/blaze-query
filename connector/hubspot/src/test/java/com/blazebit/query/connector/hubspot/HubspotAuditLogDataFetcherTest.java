@@ -33,26 +33,26 @@ class HubspotAuditLogDataFetcherTest {
 
 	private static HubspotAuditLog contactUpdated() {
 		return new HubspotAuditLog( "evt-1", "CONTACT", "UPDATED", "Contact updated",
-				"contact-100", "CONTACT", "2024-03-01T10:00:00Z",
-				new HubspotAuditLog.ActingUser( "user-1", "alice@example.com" ) );
+				"contact-100", "2024-03-01T10:00:00Z",
+				new HubspotAuditLog.ActingUser( 1, "alice@example.com" ) );
 	}
 
 	private static HubspotAuditLog contactDeleted() {
 		return new HubspotAuditLog( "evt-2", "CONTACT", "DELETED", "Contact deleted",
-				"contact-200", "CONTACT", "2024-03-01T11:00:00Z",
-				new HubspotAuditLog.ActingUser( "user-2", "bob@example.com" ) );
+				"contact-200", "2024-03-01T11:00:00Z",
+				new HubspotAuditLog.ActingUser( 2, "bob@example.com" ) );
 	}
 
 	private static HubspotAuditLog userCreated() {
 		return new HubspotAuditLog( "evt-3", "USER", "CREATED", "User added",
-				"user-300", "USER", "2024-03-01T09:00:00Z",
-				new HubspotAuditLog.ActingUser( "user-1", "alice@example.com" ) );
+				"user-300", "2024-03-01T09:00:00Z",
+				new HubspotAuditLog.ActingUser( 1, "alice@example.com" ) );
 	}
 
 	private static HubspotAuditLog integrationCreated() {
 		return new HubspotAuditLog( "evt-4", "INTEGRATION", "CREATED", "Integration added",
-				"integration-400", "INTEGRATION", "2024-03-01T08:00:00Z",
-				new HubspotAuditLog.ActingUser( "user-1", "alice@example.com" ) );
+				"integration-400", "2024-03-01T08:00:00Z",
+				new HubspotAuditLog.ActingUser( 1, "alice@example.com" ) );
 	}
 
 	// --- tests ---------------------------------------------------------------
@@ -79,7 +79,7 @@ class HubspotAuditLogDataFetcherTest {
 
 			var result = session.createQuery(
 					"SELECT l.id, l.targetObjectId, l.subCategory FROM HubspotAuditLog l"
-							+ " WHERE l.targetObjectType = 'CONTACT'",
+							+ " WHERE l.category = 'CONTACT'",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 2 );
@@ -93,12 +93,12 @@ class HubspotAuditLogDataFetcherTest {
 					List.of( contactUpdated(), contactDeleted(), userCreated(), integrationCreated() ) );
 
 			var result = session.createQuery(
-					"SELECT l.id, l.targetObjectType, l.targetObjectId FROM HubspotAuditLog l"
+					"SELECT l.id, l.category, l.targetObjectId FROM HubspotAuditLog l"
 							+ " WHERE l.subCategory = 'DELETED'",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 1 );
-			assertThat( result.get( 0 ).get( "targetObjectType" ) ).isEqualTo( "CONTACT" );
+			assertThat( result.get( 0 ).get( "category" ) ).isEqualTo( "CONTACT" );
 		}
 	}
 

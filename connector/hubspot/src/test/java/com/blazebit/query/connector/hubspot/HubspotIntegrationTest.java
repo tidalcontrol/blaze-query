@@ -51,7 +51,7 @@ class HubspotIntegrationTest {
 	void account_info() {
 		try ( var session = CONTEXT.createSession() ) {
 			var result = session.createQuery(
-					"SELECT portalId, dataHostingLocation, accountType, timeZone, currency FROM HubspotAccountInfo",
+					"SELECT portalId, dataHostingLocation, accountType, timeZone, companyCurrency FROM HubspotAccountInfo",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 			print( "AccountInfo", result );
 		}

@@ -191,26 +191,21 @@ public final class HubspotClient {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Returns login events within the given time window.
-	 * Each event records whether MFA and/or SSO was used — the primary way to audit
-	 * 2FA compliance per-user.
+	 * Returns login events for the portal. The endpoint does not support time-range
+	 * filtering — only pagination ({@code after}, {@code limit}) and an optional
+	 * {@code userId} filter.
 	 * Requires the {@code account-info.security.read} scope and an Enterprise subscription.
 	 *
-	 * @param from earliest event timestamp (ISO-8601), or {@code null} for no lower bound
-	 * @param to   latest event timestamp (ISO-8601), or {@code null} for no upper bound
+	 * @param userId optional portal user ID to scope the results to a single user, or {@code null} for all users
 	 */
-	List<HubspotLoginActivity> listLoginActivity(OffsetDateTime from, OffsetDateTime to)
-			throws IOException, InterruptedException {
+	List<HubspotLoginActivity> listLoginActivity(Integer userId) throws IOException, InterruptedException {
 		List<HubspotLoginActivity> events = new ArrayList<>();
 		String after = null;
 		do {
 			StringBuilder url = new StringBuilder( BASE_URL )
 					.append( "/account-info/v3/activity/login?limit=" ).append( PAGE_SIZE );
-			if ( from != null ) {
-				url.append( "&occurredAfter=" ).append( from );
-			}
-			if ( to != null ) {
-				url.append( "&occurredBefore=" ).append( to );
+			if ( userId != null ) {
+				url.append( "&userId=" ).append( userId );
 			}
 			if ( after != null ) {
 				url.append( "&after=" ).append( after );
@@ -233,8 +228,8 @@ public final class HubspotClient {
 	 * Tracks MFA/SSO toggling, user additions/removals, permission changes, and more.
 	 * Requires the {@code account-info.security.read} scope and an Enterprise subscription.
 	 *
-	 * @param from earliest event timestamp (ISO-8601), or {@code null} for no lower bound
-	 * @param to   latest event timestamp (ISO-8601), or {@code null} for no upper bound
+	 * @param from earliest event timestamp, or {@code null} for no lower bound
+	 * @param to   latest event timestamp, or {@code null} for no upper bound
 	 */
 	List<HubspotSecurityActivity> listSecurityActivity(OffsetDateTime from, OffsetDateTime to)
 			throws IOException, InterruptedException {
@@ -244,10 +239,10 @@ public final class HubspotClient {
 			StringBuilder url = new StringBuilder( BASE_URL )
 					.append( "/account-info/v3/activity/security?limit=" ).append( PAGE_SIZE );
 			if ( from != null ) {
-				url.append( "&occurredAfter=" ).append( from );
+				url.append( "&fromTimestamp=" ).append( from.toInstant().toEpochMilli() );
 			}
 			if ( to != null ) {
-				url.append( "&occurredBefore=" ).append( to );
+				url.append( "&toTimestamp=" ).append( to.toInstant().toEpochMilli() );
 			}
 			if ( after != null ) {
 				url.append( "&after=" ).append( after );

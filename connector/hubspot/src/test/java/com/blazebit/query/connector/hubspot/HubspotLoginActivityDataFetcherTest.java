@@ -15,8 +15,9 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for {@link HubspotLoginActivityDataFetcher} covering the "2FA / MFA"
- * compliance query using the {@code mfaUsed} and {@code ssoUsed} fields.
+ * Tests for {@link HubspotLoginActivityDataFetcher} covering the failed-login
+ * and unexpected-country compliance queries supported by the
+ * {@code PublicLoginAudit} schema.
  */
 class HubspotLoginActivityDataFetcherTest {
 
@@ -31,36 +32,32 @@ class HubspotLoginActivityDataFetcherTest {
 
 	// --- test data -----------------------------------------------------------
 
-	/** A successful login with both MFA and SSO used. */
-	private static HubspotLoginActivity mfaAndSsoLogin() {
+	private static HubspotLoginActivity successfulDesktopLogin() {
 		return new HubspotLoginActivity(
-				"login-1", "user-1", "alice@example.com",
-				"2024-03-01T09:00:00Z", "WEB", "SSO", "SUCCESS",
-				true, true, "203.0.113.1", "DE", "BY", "Chrome 122", "DESKTOP" );
+				"login-1", "2024-03-01T09:00:00Z", true, 1001, "alice@example.com",
+				"203.0.113.1", "Mozilla/5.0 (Macintosh) Chrome/122.0", "Munich, Germany",
+				"DE", "BY" );
 	}
 
-	/** A successful login with no MFA (password only). */
-	private static HubspotLoginActivity passwordOnlyLogin() {
+	private static HubspotLoginActivity successfulMobileLogin() {
 		return new HubspotLoginActivity(
-				"login-2", "user-2", "bob@example.com",
-				"2024-03-01T10:00:00Z", "WEB", "PASSWORD", "SUCCESS",
-				false, false, "198.51.100.5", "US", "CA", "Firefox 124", "DESKTOP" );
+				"login-2", "2024-03-01T10:00:00Z", true, 1002, "bob@example.com",
+				"198.51.100.5", "HubSpot iOS 5.2", "San Francisco, United States",
+				"US", "CA" );
 	}
 
-	/** A failed login attempt. */
 	private static HubspotLoginActivity failedLogin() {
 		return new HubspotLoginActivity(
-				"login-3", "user-2", "bob@example.com",
-				"2024-03-01T10:01:00Z", "WEB", "PASSWORD", "FAILURE",
-				false, false, "198.51.100.99", "RU", null, "curl/7.0", "DESKTOP" );
+				"login-3", "2024-03-01T10:01:00Z", false, 1002, "bob@example.com",
+				"198.51.100.99", "curl/7.0", "Moscow, Russia",
+				"RU", null );
 	}
 
-	/** A mobile app login using two-factor auth but no SSO. */
-	private static HubspotLoginActivity mfaOnlyMobileLogin() {
+	private static HubspotLoginActivity successfulLondonLogin() {
 		return new HubspotLoginActivity(
-				"login-4", "user-3", "carol@example.com",
-				"2024-03-01T11:00:00Z", "MOBILE_APP", "TWO_FACTOR", "SUCCESS",
-				false, true, "192.0.2.10", "GB", "ENG", "HubSpot iOS 5.2", "MOBILE" );
+				"login-4", "2024-03-01T11:00:00Z", true, 1003, "carol@example.com",
+				"192.0.2.10", "Mozilla/5.0 (Windows) Firefox/124.0", "London, United Kingdom",
+				"GB", "ENG" );
 	}
 
 	// --- tests ---------------------------------------------------------------
@@ -69,10 +66,10 @@ class HubspotLoginActivityDataFetcherTest {
 	void should_return_all_login_events() {
 		try (var session = CONTEXT.createSession()) {
 			session.put( HubspotLoginActivity.class,
-					List.of( mfaAndSsoLogin(), passwordOnlyLogin(), failedLogin(), mfaOnlyMobileLogin() ) );
+					List.of( successfulDesktopLogin(), successfulMobileLogin(), failedLogin(), successfulLondonLogin() ) );
 
 			var result = session.createQuery(
-					"SELECT l.id, l.userEmail, l.loginStatus FROM HubspotLoginActivity l",
+					"SELECT l.id, l.email, l.loginSucceeded FROM HubspotLoginActivity l",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 4 );
@@ -80,48 +77,14 @@ class HubspotLoginActivityDataFetcherTest {
 	}
 
 	@Test
-	void should_find_logins_without_mfa() {
-		try (var session = CONTEXT.createSession()) {
-			session.put( HubspotLoginActivity.class,
-					List.of( mfaAndSsoLogin(), passwordOnlyLogin(), failedLogin(), mfaOnlyMobileLogin() ) );
-
-			// Successful logins where MFA was not used — 2FA compliance violation
-			var result = session.createQuery(
-					"SELECT l.userEmail, l.loginMethod, l.ipAddress FROM HubspotLoginActivity l"
-							+ " WHERE l.mfaUsed = false AND l.loginStatus = 'SUCCESS'",
-					new TypeReference<Map<String, Object>>() {} ).getResultList();
-
-			assertThat( result ).hasSize( 1 );
-			assertThat( result.get( 0 ).get( "userEmail" ) ).isEqualTo( "bob@example.com" );
-		}
-	}
-
-	@Test
-	void should_find_logins_without_sso() {
-		try (var session = CONTEXT.createSession()) {
-			session.put( HubspotLoginActivity.class,
-					List.of( mfaAndSsoLogin(), passwordOnlyLogin(), failedLogin(), mfaOnlyMobileLogin() ) );
-
-			// Successful logins that bypassed SSO
-			var result = session.createQuery(
-					"SELECT l.userEmail, l.loginMethod FROM HubspotLoginActivity l"
-							+ " WHERE l.ssoUsed = false AND l.loginStatus = 'SUCCESS'",
-					new TypeReference<Map<String, Object>>() {} ).getResultList();
-
-			// passwordOnlyLogin and mfaOnlyMobileLogin both have ssoUsed = false
-			assertThat( result ).hasSize( 2 );
-		}
-	}
-
-	@Test
 	void should_find_failed_login_attempts() {
 		try (var session = CONTEXT.createSession()) {
 			session.put( HubspotLoginActivity.class,
-					List.of( mfaAndSsoLogin(), passwordOnlyLogin(), failedLogin(), mfaOnlyMobileLogin() ) );
+					List.of( successfulDesktopLogin(), successfulMobileLogin(), failedLogin(), successfulLondonLogin() ) );
 
 			var result = session.createQuery(
-					"SELECT l.userEmail, l.ipAddress, l.countryCode FROM HubspotLoginActivity l"
-							+ " WHERE l.loginStatus = 'FAILURE'",
+					"SELECT l.email, l.ipAddress, l.countryCode FROM HubspotLoginActivity l"
+							+ " WHERE l.loginSucceeded = false",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 1 );
@@ -133,29 +96,26 @@ class HubspotLoginActivityDataFetcherTest {
 	void should_find_logins_from_unexpected_country() {
 		try (var session = CONTEXT.createSession()) {
 			session.put( HubspotLoginActivity.class,
-					List.of( mfaAndSsoLogin(), passwordOnlyLogin(), failedLogin(), mfaOnlyMobileLogin() ) );
+					List.of( successfulDesktopLogin(), successfulMobileLogin(), failedLogin(), successfulLondonLogin() ) );
 
-			// Example: portal allows only DE and GB — flag others
 			var result = session.createQuery(
-					"SELECT l.userEmail, l.countryCode, l.ipAddress FROM HubspotLoginActivity l"
+					"SELECT l.email, l.countryCode, l.ipAddress FROM HubspotLoginActivity l"
 							+ " WHERE l.countryCode NOT IN ('DE', 'GB', 'US')",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
-			// RU login (failed) should be flagged
 			assertThat( result ).hasSize( 1 );
 			assertThat( result.get( 0 ).get( "countryCode" ) ).isEqualTo( "RU" );
 		}
 	}
 
 	@Test
-	void should_find_all_successful_logins_with_mfa() {
+	void should_filter_logins_by_user() {
 		try (var session = CONTEXT.createSession()) {
 			session.put( HubspotLoginActivity.class,
-					List.of( mfaAndSsoLogin(), passwordOnlyLogin(), failedLogin(), mfaOnlyMobileLogin() ) );
+					List.of( successfulDesktopLogin(), successfulMobileLogin(), failedLogin(), successfulLondonLogin() ) );
 
 			var result = session.createQuery(
-					"SELECT l.userEmail, l.loginMethod FROM HubspotLoginActivity l"
-							+ " WHERE l.mfaUsed = true AND l.loginStatus = 'SUCCESS'",
+					"SELECT l.id, l.loginSucceeded FROM HubspotLoginActivity l WHERE l.userId = 1002",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 2 );
