@@ -68,7 +68,7 @@ public final class HubspotClient {
 			if ( page.results != null ) {
 				users.addAll( page.results );
 			}
-			after = ( page.paging != null && page.paging.next != null ) ? page.paging.next.after : null;
+			after = nextAfter( page.paging, after );
 		} while ( after != null );
 		return users;
 	}
@@ -105,7 +105,7 @@ public final class HubspotClient {
 			if ( page.results != null ) {
 				owners.addAll( page.results );
 			}
-			after = ( page.paging != null && page.paging.next != null ) ? page.paging.next.after : null;
+			after = nextAfter( page.paging, after );
 		} while ( after != null );
 		return owners;
 	}
@@ -181,7 +181,7 @@ public final class HubspotClient {
 			if ( page.results != null ) {
 				logs.addAll( page.results );
 			}
-			after = ( page.paging != null && page.paging.next != null ) ? page.paging.next.after : null;
+			after = nextAfter( page.paging, after );
 		} while ( after != null );
 		return logs;
 	}
@@ -214,7 +214,7 @@ public final class HubspotClient {
 			if ( page.results != null ) {
 				events.addAll( page.results );
 			}
-			after = ( page.paging != null && page.paging.next != null ) ? page.paging.next.after : null;
+			after = nextAfter( page.paging, after );
 		} while ( after != null );
 		return events;
 	}
@@ -251,7 +251,7 @@ public final class HubspotClient {
 			if ( page.results != null ) {
 				events.addAll( page.results );
 			}
-			after = ( page.paging != null && page.paging.next != null ) ? page.paging.next.after : null;
+			after = nextAfter( page.paging, after );
 		} while ( after != null );
 		return events;
 	}
@@ -259,6 +259,25 @@ public final class HubspotClient {
 	// -------------------------------------------------------------------------
 	// Internal HTTP helper
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Returns the cursor for the next page, or {@code null} when pagination should stop.
+	 *
+	 * <p>HubSpot endpoints occasionally include a {@code paging.next.after} cursor that
+	 * points back to the same page (we have observed this on
+	 * {@code /account-info/v3/activity/security} when the result set is empty). Treating
+	 * a non-advancing cursor as end-of-stream prevents an infinite loop.
+	 */
+	private static String nextAfter(Paging paging, String currentAfter) {
+		if ( paging == null || paging.next == null ) {
+			return null;
+		}
+		String next = paging.next.after;
+		if ( next == null || next.equals( currentAfter ) ) {
+			return null;
+		}
+		return next;
+	}
 
 	private <T> T get(String url, Class<T> responseType) throws IOException, InterruptedException {
 		HttpRequest request = HttpRequest.newBuilder()
