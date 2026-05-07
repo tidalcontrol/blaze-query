@@ -9911,6 +9911,98 @@
         ]
       }
     },
+    "/{organization}/_apis/projects": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "x-ms-docs-override-version": "7.1",
+        "x-ms-vss-resource": "projects",
+        "x-ms-vss-method": "GetProjects",
+        "description": "Get all projects in the organization that the authenticated user has access to.",
+        "operationId": "Projects_List",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization",
+            "description": "The name of the Azure DevOps organization.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "stateFilter",
+            "description": "Filter on team projects in a specific team project state (default: WellFormed).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "$top",
+            "description": "Maximum number of projects to return.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "in": "query",
+            "name": "$skip",
+            "description": "Number of projects to skip.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "in": "query",
+            "name": "continuationToken",
+            "description": "Pointer that shows how many projects have already been fetched.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "getDefaultTeamImageUrl",
+            "description": "Whether to include the default team image URL.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/api-Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamProjectReferenceList"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "vso.project"
+            ]
+          }
+        ]
+      }
+    },
     "/{organization}/_apis/wit/wiql": {
       "post": {
         "tags": [
@@ -17822,6 +17914,21 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/WorkItem"
+            }
+          }
+        }
+      },
+      "TeamProjectReferenceList": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "value": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamProjectReference"
             }
           }
         }

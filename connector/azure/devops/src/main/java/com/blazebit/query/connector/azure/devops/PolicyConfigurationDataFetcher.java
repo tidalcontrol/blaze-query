@@ -12,6 +12,7 @@ import com.blazebit.query.connector.devops.invoker.ApiException;
 import com.blazebit.query.connector.devops.invoker.ApiResponse;
 import com.blazebit.query.connector.devops.model.GitRepository;
 import com.blazebit.query.connector.devops.model.PolicyConfiguration;
+import com.blazebit.query.connector.devops.model.TeamProjectReference;
 import com.blazebit.query.spi.DataFetchContext;
 import com.blazebit.query.spi.DataFetcher;
 import com.blazebit.query.spi.DataFetcherException;
@@ -24,9 +25,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Fetches all {@link PolicyConfiguration} objects across all repositories in a configured
- * Azure DevOps project. Iterates over every repository and pages through its policy
- * configurations using the {@code x-ms-continuationtoken} response header.
+ * Fetches all {@link PolicyConfiguration} objects across every project accessible to the
+ * configured Azure DevOps account. For each project, fetches project-wide policies and then
+ * iterates over every repository to capture repository-scoped policies. Pages through results
+ * using the {@code x-ms-continuationtoken} response header.
  *
  * @author Martijn Sprengers
  * @since 1.0.8
@@ -49,18 +51,20 @@ public class PolicyConfigurationDataFetcher implements DataFetcher<PolicyConfigu
 			for ( DevopsConnectorConfig.Account account : accounts ) {
 				ApiClient apiClient = account.getWitApiClient();
 				String organization = account.getOrganization();
-				String project = account.getProject();
 
-				fetchForProject( apiClient, organization, project, deduplicated );
+				for ( TeamProjectReference project : context.getSession().getOrFetch( TeamProjectReference.class ) ) {
+					String projectId = project.getId().toString();
+					fetchForProject( apiClient, organization, projectId, deduplicated );
 
-				// The project-level fetch returns only policies not scoped to a specific repository.
-				// Per-repository fetches are required to capture repository-scoped policies (e.g. branch
-				// policies). Deduplication via the map ensures project-wide policies are not counted twice.
-				RepositoriesApi repositoriesApi = new RepositoriesApi( apiClient );
-				List<GitRepository> repositories = repositoriesApi.repositoriesList(
-						organization, project, "7.1", null, null, null );
-				for ( GitRepository repository : repositories ) {
-					fetchForRepository( apiClient, organization, project, repository, deduplicated );
+					// The project-level fetch returns only policies not scoped to a specific repository.
+					// Per-repository fetches are required to capture repository-scoped policies (e.g. branch
+					// policies). Deduplication via the map ensures project-wide policies are not counted twice.
+					RepositoriesApi repositoriesApi = new RepositoriesApi( apiClient );
+					List<GitRepository> repositories = repositoriesApi.repositoriesList(
+							organization, projectId, "7.1", null, null, null );
+					for ( GitRepository repository : repositories ) {
+						fetchForRepository( apiClient, organization, projectId, repository, deduplicated );
+					}
 				}
 			}
 			return new ArrayList<>( deduplicated.values() );
