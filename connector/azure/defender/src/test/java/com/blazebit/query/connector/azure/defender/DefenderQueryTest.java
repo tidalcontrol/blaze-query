@@ -60,15 +60,18 @@ public class DefenderQueryTest {
 
 	private static DefenderVulnerability criticalVuln() throws Exception {
 		return DefenderVulnerability.fromJson( MAPPER.readTree(
-				"{\"id\":\"CVE-2024-0001\",\"name\":\"Critical Vuln\",\"severity\":\"Critical\"," +
-				"\"cvssV3\":9.8,\"exposedMachines\":10,\"publicExploit\":true," +
-				"\"exploitVerified\":true}" ) );
+				"{\"id\":\"machine1-_-CVE-2024-0001-_-microsoft-_-windows-_-10.0.0-_-\"," +
+				"\"cveId\":\"CVE-2024-0001\",\"machineId\":\"machine1\",\"fixingKbId\":null," +
+				"\"productName\":\"windows\",\"productVendor\":\"microsoft\"," +
+				"\"productVersion\":\"10.0.0\",\"severity\":\"Critical\"}" ), "win-host" );
 	}
 
 	private static DefenderVulnerability mediumVuln() throws Exception {
 		return DefenderVulnerability.fromJson( MAPPER.readTree(
-				"{\"id\":\"CVE-2024-0002\",\"name\":\"Medium Vuln\",\"severity\":\"Medium\"," +
-				"\"cvssV3\":5.5,\"exposedMachines\":3,\"publicExploit\":false}" ) );
+				"{\"id\":\"machine2-_-CVE-2024-0002-_-google-_-chrome-_-120.0.0-_-\"," +
+				"\"cveId\":\"CVE-2024-0002\",\"machineId\":\"machine2\",\"fixingKbId\":null," +
+				"\"productName\":\"chrome\",\"productVendor\":\"google\"," +
+				"\"productVersion\":\"120.0.0\",\"severity\":\"Medium\"}" ), "linux-host" );
 	}
 
 	private static DefenderRecommendation activeRec() throws Exception {
@@ -155,11 +158,11 @@ public class DefenderQueryTest {
 			session.put( DefenderVulnerability.class, List.of( criticalVuln(), mediumVuln() ) );
 
 			var result = session.createQuery(
-					"select v.id from DefenderVulnerability v where v.severity = 'Critical'",
+					"select v.cveId from DefenderVulnerability v where v.severity = 'Critical'",
 					new TypeReference<Map<String, Object>>() {} ).getResultList();
 
 			assertThat( result ).hasSize( 1 );
-			assertThat( result.get( 0 ).get( "id" ) ).isEqualTo( "CVE-2024-0001" );
+			assertThat( result.get( 0 ).get( "cveId" ) ).isEqualTo( "CVE-2024-0001" );
 		}
 	}
 
