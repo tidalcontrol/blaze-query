@@ -63,7 +63,7 @@ public class DefenderQueryTest {
 				"{\"id\":\"machine1-_-CVE-2024-0001-_-microsoft-_-windows-_-10.0.0-_-\"," +
 				"\"cveId\":\"CVE-2024-0001\",\"machineId\":\"machine1\",\"fixingKbId\":null," +
 				"\"productName\":\"windows\",\"productVendor\":\"microsoft\"," +
-				"\"productVersion\":\"10.0.0\",\"severity\":\"Critical\"}" ) );
+				"\"productVersion\":\"10.0.0\",\"severity\":\"Critical\"}" ), "win-host" );
 	}
 
 	private static DefenderVulnerability mediumVuln() throws Exception {
@@ -71,7 +71,7 @@ public class DefenderQueryTest {
 				"{\"id\":\"machine2-_-CVE-2024-0002-_-google-_-chrome-_-120.0.0-_-\"," +
 				"\"cveId\":\"CVE-2024-0002\",\"machineId\":\"machine2\",\"fixingKbId\":null," +
 				"\"productName\":\"chrome\",\"productVendor\":\"google\"," +
-				"\"productVersion\":\"120.0.0\",\"severity\":\"Medium\"}" ) );
+				"\"productVersion\":\"120.0.0\",\"severity\":\"Medium\"}" ), "linux-host" );
 	}
 
 	private static DefenderRecommendation activeRec() throws Exception {
