@@ -138,7 +138,6 @@ import com.blazebit.query.connector.azure.resourcemanager.AzureResourceSecurityA
 import com.blazebit.query.connector.azure.resourcemanager.AzureResourceManagedCluster;
 import com.blazebit.query.connector.azure.resourcemanager.AzureResourcePostgreSqlFlexibleServer;
 import com.blazebit.query.connector.azure.resourcemanager.AzureResourceManagerPostgreSqlManager;
-import com.blazebit.query.connector.azure.resourcemanager.AzureResourceManagerPostgreSqlManagerConnectorConfig;
 import com.blazebit.query.connector.azure.resourcemanager.AzureResourcePostgreSqlFlexibleServerBackup;
 import com.blazebit.query.connector.azure.resourcemanager.AzureResourcePostgreSqlFlexibleServerWithParameters;
 import com.blazebit.query.connector.azure.resourcemanager.AzureResourceStorageAccount;
@@ -150,9 +149,13 @@ import com.blazebit.query.connector.azure.resourcemanager.AzureResourceTenant;
 import com.blazebit.query.connector.azure.resourcemanager.AzureResourceVault;
 import com.blazebit.query.connector.azure.resourcemanager.AzureResourceVirtualMachine;
 import com.blazebit.query.connector.azure.resourcemanager.AzureResourceVirtualNetwork;
-import com.blazebit.query.connector.azure.graph.AzureGraphConnectorConfig;
-import com.blazebit.query.connector.azure.resourcemanager.AzureResourceManagerConnectorConfig;
+import com.blazebit.query.connector.azure.devops.DevopsConnectorConfig;
+import com.blazebit.query.connector.azure.devops.WorkItem;
 import com.blazebit.query.connector.azure.resourcemanager.ResourceGraphClientAccessor;
+import com.blazebit.query.connector.devops.invoker.ApiClient;
+import com.blazebit.query.connector.devops.model.GitRepository;
+import com.blazebit.query.connector.devops.model.PolicyConfiguration;
+import com.blazebit.query.connector.devops.model.TeamProjectReference;
 import com.azure.resourcemanager.resourcegraph.ResourceGraphManager;
 import com.blazebit.query.connector.gcp.compute.GcpFirewallRule;
 import com.blazebit.query.connector.gcp.compute.GcpInstance;
@@ -335,6 +338,8 @@ public class Main {
 	private static final String AZURE_TENANT_ID = "";
 	private static final String AZURE_CLIENT_ID = "";
 	private static final String AZURE_CLIENT_SECRET = "";
+	private static final String AZURE_DEVOPS_ORGANIZATION = "riskops";
+	private static final String AZURE_DEVOPS_PAT = "";
 	private static final String AWS_ACCOUNT_ID = "";
 	private static final String AWS_REGION = "";
 	private static final String AWS_ACCESS_KEY_ID = "";
@@ -395,13 +400,14 @@ public class Main {
 			EntityViewManager evm = defaultConfiguration.createEntityViewManager( cbf );
 
 			QueryContextBuilder queryContextBuilder = Queries.createQueryContextBuilder();
-			AzureResourceManager resourceManager = createResourceManager();
-			queryContextBuilder.setProperty( AzureResourceManagerConnectorConfig.AZURE_RESOURCE_MANAGER.getPropertyName(), resourceManager);
-			queryContextBuilder.setPropertyProvider( AzureResourceManagerPostgreSqlManagerConnectorConfig.POSTGRESQL_MANAGER.getPropertyName(),
-					Main::createPostgreSqlManagers );
-			queryContextBuilder.setProperty( "serverParameters", List.of("ssl_min_protocol_version", "authentication_timeout"));
-			queryContextBuilder.setProperty( AzureResourceManagerConnectorConfig.RESOURCE_GRAPH_CLIENT.getPropertyName(), createResourceGraphClient( resourceManager ));
-			queryContextBuilder.setProperty( AzureGraphConnectorConfig.GRAPH_SERVICE_CLIENT.getPropertyName(), createGraphServiceClient());
+//			AzureResourceManager resourceManager = createResourceManager();
+//			queryContextBuilder.setProperty( AzureResourceManagerConnectorConfig.AZURE_RESOURCE_MANAGER.getPropertyName(), resourceManager);
+//			queryContextBuilder.setPropertyProvider( AzureResourceManagerPostgreSqlManagerConnectorConfig.POSTGRESQL_MANAGER.getPropertyName(),
+//					Main::createPostgreSqlManagers );
+//			queryContextBuilder.setProperty( "serverParameters", List.of("ssl_min_protocol_version", "authentication_timeout"));
+//			queryContextBuilder.setProperty( AzureResourceManagerConnectorConfig.RESOURCE_GRAPH_CLIENT.getPropertyName(), createResourceGraphClient( resourceManager ));
+//			queryContextBuilder.setProperty( AzureGraphConnectorConfig.GRAPH_SERVICE_CLIENT.getPropertyName(), createGraphServiceClient());
+			queryContextBuilder.setProperty( DevopsConnectorConfig.ACCOUNT.getPropertyName(), createAzureDevopsAccount() );
 //			queryContextBuilder.setProperty( AwsConnectorConfig.ACCOUNT.getPropertyName(), createAwsAccount() );
 //				queryContextBuilder.setProperty( GoogleDirectoryConnectorConfig.GOOGLE_DIRECTORY_SERVICE.getPropertyName(), createGoogleDirectory() );
 //			queryContextBuilder.setProperty( GoogleDriveConnectorConfig.GOOGLE_DRIVE_SERVICE.getPropertyName(), createGoogleDrive() );
@@ -460,6 +466,12 @@ public class Main {
 			queryContextBuilder.registerSchemaObjectAlias( AzureResourcePatchAssessmentResult.class, "AzurePatchAssessmentResult" );
 			queryContextBuilder.registerSchemaObjectAlias( AzureResourceSecurityAssessment.class, "AzureSecurityAssessment" );
 			queryContextBuilder.registerSchemaObjectAlias( AzureResourceRoleAssignment.class, "AzureRoleAssignment" );
+
+			// Azure DevOps
+			queryContextBuilder.registerSchemaObjectAlias( TeamProjectReference.class, "AzureDevOpsProject" );
+			queryContextBuilder.registerSchemaObjectAlias( GitRepository.class, "AzureDevOpsRepository" );
+			queryContextBuilder.registerSchemaObjectAlias( PolicyConfiguration.class, "AzureDevOpsPolicyConfiguration" );
+			queryContextBuilder.registerSchemaObjectAlias( WorkItem.class, "AzureDevOpsWorkItem" );
 
 			// Access Analyzer
 			queryContextBuilder.registerSchemaObjectAlias( AwsAccessAnalyzerAnalyzer.class, "AwsAnalyzer" );
@@ -804,6 +816,7 @@ public class Main {
 //					testObservatory(  session );
 //					testAzureGraph( session );
 //					testAzureResourceManager( session );
+					testAzureDevops( session );
 				}
 			}
 		}
@@ -1971,6 +1984,32 @@ public class Main {
 		print( secureScoreControlProfileResult );
 	}
 
+	private static void testAzureDevops(QuerySession session) {
+		TypedQuery<Object[]> projectQuery = session.createQuery(
+				"select p.* from AzureDevOpsProject p" );
+		List<Object[]> projectResult = projectQuery.getResultList();
+		System.out.println( "Azure DevOps projects" );
+		print( projectResult );
+
+		TypedQuery<Object[]> repositoryQuery = session.createQuery(
+				"select r.* from AzureDevOpsRepository r" );
+		List<Object[]> repositoryResult = repositoryQuery.getResultList();
+		System.out.println( "Azure DevOps repositories" );
+		print( repositoryResult );
+
+		TypedQuery<Object[]> policyQuery = session.createQuery(
+				"select p.* from AzureDevOpsPolicyConfiguration p" );
+		List<Object[]> policyResult = policyQuery.getResultList();
+		System.out.println( "Azure DevOps policy configurations" );
+		print( policyResult );
+
+		TypedQuery<Object[]> workItemQuery = session.createQuery(
+				"select w.* from AzureDevOpsWorkItem w" );
+		List<Object[]> workItemResult = workItemQuery.getResultList();
+		System.out.println( "Azure DevOps work items" );
+		print( workItemResult );
+	}
+
 	private static void testAzureResourceManager(QuerySession session) {
 		TypedQuery<Object[]> vmQuery1 = session.createQuery(
 				"select vm.* from AzureVirtualMachine vm where vm.payload.storageProfile.osDisk.osType <> 'Linux'" );
@@ -3030,6 +3069,21 @@ public class Main {
 				AZURE_TENANT_ID,
 				new GraphServiceClient( credentials, "https://graph.microsoft.com/.default" )
 		);
+	}
+
+	private static DevopsConnectorConfig.Account createAzureDevopsAccount() {
+		String basicAuth = "Basic " + Base64.getEncoder()
+				.encodeToString( (":" + AZURE_DEVOPS_PAT).getBytes( StandardCharsets.UTF_8 ) );
+
+		ApiClient apiClient = new ApiClient();
+		apiClient.setBasePath( "https://app.vssps.visualstudio.com" );
+		apiClient.addDefaultHeader( "Authorization", basicAuth );
+
+		ApiClient witApiClient = new ApiClient();
+		witApiClient.setBasePath( "https://dev.azure.com" );
+		witApiClient.addDefaultHeader( "Authorization", basicAuth );
+
+		return new DevopsConnectorConfig.Account( apiClient, witApiClient, AZURE_DEVOPS_ORGANIZATION );
 	}
 
 	private static Directory createGoogleDirectory() {

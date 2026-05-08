@@ -482,10 +482,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PolicyConfiguration"
-                  }
+                  "$ref": "#/components/schemas/PolicyConfigurationList"
                 }
               }
             }
@@ -1132,10 +1129,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GitRepository"
-                  }
+                  "$ref": "#/components/schemas/GitRepositoryList"
                 }
               }
             }
@@ -17929,6 +17923,36 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TeamProjectReference"
+            }
+          }
+        }
+      },
+      "GitRepositoryList": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "value": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GitRepository"
+            }
+          }
+        }
+      },
+      "PolicyConfigurationList": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "value": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PolicyConfiguration"
             }
           }
         }

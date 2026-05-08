@@ -8,6 +8,7 @@ import com.blazebit.query.connector.base.DataFormats;
 import com.blazebit.query.connector.devops.api.RepositoriesApi;
 import com.blazebit.query.connector.devops.invoker.ApiException;
 import com.blazebit.query.connector.devops.model.GitRepository;
+import com.blazebit.query.connector.devops.model.GitRepositoryList;
 import com.blazebit.query.connector.devops.model.TeamProjectReference;
 import com.blazebit.query.spi.DataFetchContext;
 import com.blazebit.query.spi.DataFetcher;
@@ -40,9 +41,11 @@ public class RepositoryDataFetcher implements DataFetcher<GitRepository>, Serial
 			for ( DevopsConnectorConfig.Account account : accounts ) {
 				RepositoriesApi repositoriesApi = new RepositoriesApi( account.getWitApiClient() );
 				for ( TeamProjectReference project : context.getSession().getOrFetch( TeamProjectReference.class ) ) {
-					List<GitRepository> repositories = repositoriesApi.repositoriesList(
+					GitRepositoryList repositories = repositoriesApi.repositoriesList(
 							account.getOrganization(), project.getId().toString(), "7.1", null, null, null );
-					list.addAll( repositories );
+					if ( repositories != null && repositories.getValue() != null ) {
+						list.addAll( repositories.getValue() );
+					}
 				}
 			}
 			return list;

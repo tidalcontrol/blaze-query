@@ -11,7 +11,9 @@ import com.blazebit.query.connector.devops.invoker.ApiClient;
 import com.blazebit.query.connector.devops.invoker.ApiException;
 import com.blazebit.query.connector.devops.invoker.ApiResponse;
 import com.blazebit.query.connector.devops.model.GitRepository;
+import com.blazebit.query.connector.devops.model.GitRepositoryList;
 import com.blazebit.query.connector.devops.model.PolicyConfiguration;
+import com.blazebit.query.connector.devops.model.PolicyConfigurationList;
 import com.blazebit.query.connector.devops.model.TeamProjectReference;
 import com.blazebit.query.spi.DataFetchContext;
 import com.blazebit.query.spi.DataFetcher;
@@ -60,10 +62,12 @@ public class PolicyConfigurationDataFetcher implements DataFetcher<PolicyConfigu
 					// Per-repository fetches are required to capture repository-scoped policies (e.g. branch
 					// policies). Deduplication via the map ensures project-wide policies are not counted twice.
 					RepositoriesApi repositoriesApi = new RepositoriesApi( apiClient );
-					List<GitRepository> repositories = repositoriesApi.repositoriesList(
+					GitRepositoryList repositories = repositoriesApi.repositoriesList(
 							organization, projectId, "7.1", null, null, null );
-					for ( GitRepository repository : repositories ) {
-						fetchForRepository( apiClient, organization, projectId, repository, deduplicated );
+					if ( repositories != null && repositories.getValue() != null ) {
+						for ( GitRepository repository : repositories.getValue() ) {
+							fetchForRepository( apiClient, organization, projectId, repository, deduplicated );
+						}
 					}
 				}
 			}
@@ -79,11 +83,9 @@ public class PolicyConfigurationDataFetcher implements DataFetcher<PolicyConfigu
 		PolicyConfigurationsApi api = new PolicyConfigurationsApi( apiClient );
 		String continuationToken = null;
 		do {
-			ApiResponse<List<PolicyConfiguration>> response = api.policyConfigurationsGetWithHttpInfo(
+			ApiResponse<PolicyConfigurationList> response = api.policyConfigurationsGetWithHttpInfo(
 					organization, project, "7.1", null, null, null, null, continuationToken );
-			for ( PolicyConfiguration policy : response.getData() ) {
-				target.putIfAbsent( policy.getId(), policy );
-			}
+			collectPolicies( response.getData(), target );
 			continuationToken = extractContinuationToken( response.getHeaders() );
 		}
 		while ( continuationToken != null );
@@ -94,14 +96,21 @@ public class PolicyConfigurationDataFetcher implements DataFetcher<PolicyConfigu
 		PolicyConfigurationsApi api = new PolicyConfigurationsApi( apiClient );
 		String continuationToken = null;
 		do {
-			ApiResponse<List<PolicyConfiguration>> response = api.policyConfigurationsGetWithHttpInfo(
+			ApiResponse<PolicyConfigurationList> response = api.policyConfigurationsGetWithHttpInfo(
 					organization, project, "7.1", repository.getId(), null, null, null, continuationToken );
-			for ( PolicyConfiguration policy : response.getData() ) {
-				target.putIfAbsent( policy.getId(), policy );
-			}
+			collectPolicies( response.getData(), target );
 			continuationToken = extractContinuationToken( response.getHeaders() );
 		}
 		while ( continuationToken != null );
+	}
+
+	private void collectPolicies(PolicyConfigurationList page, Map<Integer, PolicyConfiguration> target) {
+		if ( page == null || page.getValue() == null ) {
+			return;
+		}
+		for ( PolicyConfiguration policy : page.getValue() ) {
+			target.putIfAbsent( policy.getId(), policy );
+		}
 	}
 
 	private String extractContinuationToken(Map<String, List<String>> headers) {
