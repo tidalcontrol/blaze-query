@@ -16071,8 +16071,60 @@
             "type": "boolean"
           },
           "settings": {
-            "description": "The policy configuration settings.",
-            "type": "object"
+            "$ref": "#/components/schemas/PolicyConfigurationSettings"
+          }
+        }
+      },
+      "PolicyConfigurationSettings": {
+        "description": "Policy configuration settings. The exact field set depends on the policy type; only the fields commonly used for scoping and the built-in branch-policy types are modeled here. Unknown fields are silently ignored by Jackson (FAIL_ON_UNKNOWN_PROPERTIES is disabled).",
+        "type": "object",
+        "properties": {
+          "scope": {
+            "description": "The repository/branch scope of this policy. Each item identifies a repository and/or ref the policy applies to.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PolicyConfigurationSettingsScope"
+            }
+          },
+          "minimumApproverCount": {
+            "description": "Minimum number of approving reviewers required (minimum-reviewers policy).",
+            "type": "integer",
+            "format": "int32"
+          },
+          "creatorVoteCounts": {
+            "description": "Whether the pull request creator's own vote counts toward the approver count.",
+            "type": "boolean"
+          },
+          "allowDownvotes": {
+            "description": "Whether reviewers may reject the pull request without blocking it.",
+            "type": "boolean"
+          },
+          "resetOnSourcePush": {
+            "description": "Whether reviewer votes are reset when the source branch is updated.",
+            "type": "boolean"
+          },
+          "blockLastPusherVote": {
+            "description": "Whether the most recent pusher to the source branch is disallowed from approving.",
+            "type": "boolean"
+          }
+        }
+      },
+      "PolicyConfigurationSettingsScope": {
+        "description": "Scope item for a policy configuration: identifies a repository and/or ref the policy applies to.",
+        "type": "object",
+        "properties": {
+          "repositoryId": {
+            "description": "The repository ID this scope applies to. May be null for project-wide scope.",
+            "type": "string",
+            "format": "uuid"
+          },
+          "refName": {
+            "description": "The ref name (e.g. refs/heads/main) this scope applies to. May be null when the scope applies to the entire repository.",
+            "type": "string"
+          },
+          "matchKind": {
+            "description": "How refName is matched. Typical values: 'Exact', 'Prefix', 'DefaultBranch'.",
+            "type": "string"
           }
         }
       },
