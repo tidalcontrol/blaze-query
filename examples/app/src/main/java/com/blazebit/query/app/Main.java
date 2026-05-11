@@ -407,7 +407,7 @@ public class Main {
 //			queryContextBuilder.setProperty( "serverParameters", List.of("ssl_min_protocol_version", "authentication_timeout"));
 //			queryContextBuilder.setProperty( AzureResourceManagerConnectorConfig.RESOURCE_GRAPH_CLIENT.getPropertyName(), createResourceGraphClient( resourceManager ));
 //			queryContextBuilder.setProperty( AzureGraphConnectorConfig.GRAPH_SERVICE_CLIENT.getPropertyName(), createGraphServiceClient());
-			queryContextBuilder.setProperty( DevopsConnectorConfig.ACCOUNT.getPropertyName(), createAzureDevopsAccount() );
+//			queryContextBuilder.setProperty( DevopsConnectorConfig.ACCOUNT.getPropertyName(), createAzureDevopsAccount() );
 //			queryContextBuilder.setProperty( AwsConnectorConfig.ACCOUNT.getPropertyName(), createAwsAccount() );
 //				queryContextBuilder.setProperty( GoogleDirectoryConnectorConfig.GOOGLE_DIRECTORY_SERVICE.getPropertyName(), createGoogleDirectory() );
 //			queryContextBuilder.setProperty( GoogleDriveConnectorConfig.GOOGLE_DRIVE_SERVICE.getPropertyName(), createGoogleDrive() );
@@ -816,7 +816,7 @@ public class Main {
 //					testObservatory(  session );
 //					testAzureGraph( session );
 //					testAzureResourceManager( session );
-					testAzureDevops( session );
+//					testAzureDevops( session );
 				}
 			}
 		}
