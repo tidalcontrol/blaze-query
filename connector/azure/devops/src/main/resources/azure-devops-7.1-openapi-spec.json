@@ -16072,8 +16072,7 @@
           },
           "settings": {
             "description": "The policy configuration settings.",
-            "type": "string",
-            "format": "JObject"
+            "type": "object"
           }
         }
       },

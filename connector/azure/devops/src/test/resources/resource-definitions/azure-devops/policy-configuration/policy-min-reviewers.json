@@ -10,7 +10,20 @@
     "displayName": "Minimum number of reviewers",
     "url": "https://dev.azure.com/myorg/myproject/_apis/policy/types/fa4e907d-c16b-452d-8106-7ace9814d5be"
   },
-  "settings": "{\"minimumApproverCount\":2,\"creatorVoteCounts\":false,\"allowDownvotes\":false,\"resetOnSourcePush\":true,\"blockLastPusherVote\":true,\"scope\":[{\"repositoryId\":\"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\"refName\":\"refs/heads/main\",\"matchKind\":\"Exact\"}]}",
+  "settings": {
+    "minimumApproverCount": 2,
+    "creatorVoteCounts": false,
+    "allowDownvotes": false,
+    "resetOnSourcePush": true,
+    "blockLastPusherVote": true,
+    "scope": [
+      {
+        "repositoryId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "refName": "refs/heads/main",
+        "matchKind": "Exact"
+      }
+    ]
+  },
   "url": "https://dev.azure.com/myorg/myproject/_apis/policy/configurations/42",
   "createdBy": {
     "id": "cccccccc-dddd-eeee-ffff-000000000001",
