@@ -8,6 +8,8 @@ import com.blazebit.query.connector.base.DataFormats;
 import com.blazebit.query.connector.devops.api.RepositoriesApi;
 import com.blazebit.query.connector.devops.invoker.ApiException;
 import com.blazebit.query.connector.devops.model.GitRepository;
+import com.blazebit.query.connector.devops.model.GitRepositoryList;
+import com.blazebit.query.connector.devops.model.TeamProjectReference;
 import com.blazebit.query.spi.DataFetchContext;
 import com.blazebit.query.spi.DataFetcher;
 import com.blazebit.query.spi.DataFetcherException;
@@ -18,7 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Fetches {@link GitRepository} objects for a configured Azure DevOps project.
+ * Fetches {@link GitRepository} objects across every project accessible to the configured
+ * Azure DevOps account.
  *
  * @author Martijn Sprengers
  * @since 1.0.8
@@ -37,9 +40,13 @@ public class RepositoryDataFetcher implements DataFetcher<GitRepository>, Serial
 			List<GitRepository> list = new ArrayList<>();
 			for ( DevopsConnectorConfig.Account account : accounts ) {
 				RepositoriesApi repositoriesApi = new RepositoriesApi( account.getWitApiClient() );
-				List<GitRepository> repositories = repositoriesApi.repositoriesList(
-						account.getOrganization(), account.getProject(), "7.1", null, null, null );
-				list.addAll( repositories );
+				for ( TeamProjectReference project : context.getSession().getOrFetch( TeamProjectReference.class ) ) {
+					GitRepositoryList repositories = repositoriesApi.repositoriesList(
+							account.getOrganization(), project.getId().toString(), "7.1", null, null, null );
+					if ( repositories != null && repositories.getValue() != null ) {
+						list.addAll( repositories.getValue() );
+					}
+				}
 			}
 			return list;
 		}

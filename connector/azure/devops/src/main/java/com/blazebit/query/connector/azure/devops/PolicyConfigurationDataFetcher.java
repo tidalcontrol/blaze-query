@@ -6,12 +6,12 @@ package com.blazebit.query.connector.azure.devops;
 
 import com.blazebit.query.connector.base.DataFormats;
 import com.blazebit.query.connector.devops.api.PolicyConfigurationsApi;
-import com.blazebit.query.connector.devops.api.RepositoriesApi;
 import com.blazebit.query.connector.devops.invoker.ApiClient;
 import com.blazebit.query.connector.devops.invoker.ApiException;
 import com.blazebit.query.connector.devops.invoker.ApiResponse;
-import com.blazebit.query.connector.devops.model.GitRepository;
 import com.blazebit.query.connector.devops.model.PolicyConfiguration;
+import com.blazebit.query.connector.devops.model.PolicyConfigurationList;
+import com.blazebit.query.connector.devops.model.TeamProjectReference;
 import com.blazebit.query.spi.DataFetchContext;
 import com.blazebit.query.spi.DataFetcher;
 import com.blazebit.query.spi.DataFetcherException;
@@ -19,14 +19,15 @@ import com.blazebit.query.spi.DataFormat;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Fetches all {@link PolicyConfiguration} objects across all repositories in a configured
- * Azure DevOps project. Iterates over every repository and pages through its policy
- * configurations using the {@code x-ms-continuationtoken} response header.
+ * Fetches all {@link PolicyConfiguration} objects across every project accessible to the
+ * configured Azure DevOps account. For each project, a single call to the project-scoped
+ * {@code _apis/policy/configurations} endpoint returns all policy configurations — including
+ * branch policies — without requiring per-repository filtering. Pages through results using
+ * the {@code x-ms-continuationtoken} response header.
  *
  * @author Martijn Sprengers
  * @since 1.0.8
@@ -44,60 +45,32 @@ public class PolicyConfigurationDataFetcher implements DataFetcher<PolicyConfigu
 	public List<PolicyConfiguration> fetch(DataFetchContext context) {
 		try {
 			List<DevopsConnectorConfig.Account> accounts = DevopsConnectorConfig.ACCOUNT.getAll( context );
-			// Use a map to deduplicate: project-wide policies appear for every repo they match
-			Map<Integer, PolicyConfiguration> deduplicated = new LinkedHashMap<>();
+			List<PolicyConfiguration> result = new ArrayList<>();
 			for ( DevopsConnectorConfig.Account account : accounts ) {
 				ApiClient apiClient = account.getWitApiClient();
 				String organization = account.getOrganization();
-				String project = account.getProject();
+				PolicyConfigurationsApi api = new PolicyConfigurationsApi( apiClient );
 
-				fetchForProject( apiClient, organization, project, deduplicated );
-
-				// The project-level fetch returns only policies not scoped to a specific repository.
-				// Per-repository fetches are required to capture repository-scoped policies (e.g. branch
-				// policies). Deduplication via the map ensures project-wide policies are not counted twice.
-				RepositoriesApi repositoriesApi = new RepositoriesApi( apiClient );
-				List<GitRepository> repositories = repositoriesApi.repositoriesList(
-						organization, project, "7.1", null, null, null );
-				for ( GitRepository repository : repositories ) {
-					fetchForRepository( apiClient, organization, project, repository, deduplicated );
+				for ( TeamProjectReference project : context.getSession().getOrFetch( TeamProjectReference.class ) ) {
+					String projectId = project.getId().toString();
+					String continuationToken = null;
+					do {
+						ApiResponse<PolicyConfigurationList> response = api.policyConfigurationsListWithHttpInfo(
+								organization, projectId, "7.1", null, null, null, continuationToken );
+						PolicyConfigurationList page = response.getData();
+						if ( page != null && page.getValue() != null ) {
+							result.addAll( page.getValue() );
+						}
+						continuationToken = extractContinuationToken( response.getHeaders() );
+					}
+					while ( continuationToken != null );
 				}
 			}
-			return new ArrayList<>( deduplicated.values() );
+			return result;
 		}
 		catch (ApiException e) {
 			throw new DataFetcherException( "Could not fetch policy configuration list", e );
 		}
-	}
-
-	private void fetchForProject(ApiClient apiClient, String organization, String project,
-			Map<Integer, PolicyConfiguration> target) throws ApiException {
-		PolicyConfigurationsApi api = new PolicyConfigurationsApi( apiClient );
-		String continuationToken = null;
-		do {
-			ApiResponse<List<PolicyConfiguration>> response = api.policyConfigurationsGetWithHttpInfo(
-					organization, project, "7.1", null, null, null, null, continuationToken );
-			for ( PolicyConfiguration policy : response.getData() ) {
-				target.putIfAbsent( policy.getId(), policy );
-			}
-			continuationToken = extractContinuationToken( response.getHeaders() );
-		}
-		while ( continuationToken != null );
-	}
-
-	private void fetchForRepository(ApiClient apiClient, String organization, String project,
-			GitRepository repository, Map<Integer, PolicyConfiguration> target) throws ApiException {
-		PolicyConfigurationsApi api = new PolicyConfigurationsApi( apiClient );
-		String continuationToken = null;
-		do {
-			ApiResponse<List<PolicyConfiguration>> response = api.policyConfigurationsGetWithHttpInfo(
-					organization, project, "7.1", repository.getId(), null, null, null, continuationToken );
-			for ( PolicyConfiguration policy : response.getData() ) {
-				target.putIfAbsent( policy.getId(), policy );
-			}
-			continuationToken = extractContinuationToken( response.getHeaders() );
-		}
-		while ( continuationToken != null );
 	}
 
 	private String extractContinuationToken(Map<String, List<String>> headers) {

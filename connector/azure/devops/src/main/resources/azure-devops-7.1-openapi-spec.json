@@ -388,6 +388,105 @@
         ]
       }
     },
+    "/{organization}/{project}/_apis/policy/configurations": {
+      "get": {
+        "tags": [
+          "Policy Configurations"
+        ],
+        "x-ms-docs-override-version": "7.1",
+        "x-ms-vss-resource": "policyConfigurations",
+        "x-ms-vss-method": "GetPolicyConfigurations",
+        "description": "Retrieve a list of policy configurations defined or applied at the project level. Unlike the git-scoped variant, this endpoint returns all policy configurations for the project (including branch policies) in a single response, without requiring a repository/ref filter.",
+        "operationId": "Policy Configurations_List",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization",
+            "description": "The name of the Azure DevOps organization.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "project",
+            "description": "Project ID or project name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scope",
+            "description": "The scope filter parameter.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "policyType",
+            "description": "The policy type filter.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "$top",
+            "description": "Maximum number of policies to return.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "in": "query",
+            "name": "continuationToken",
+            "description": "Pass a policy configuration ID to fetch the next page of results, up to top number of results, for this endpoint.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/api-Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {
+              "x-ms-continuationtoken": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyConfigurationList"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "vso.code"
+            ]
+          }
+        ]
+      }
+    },
     "/{organization}/{project}/_apis/git/policy/configurations": {
       "get": {
         "tags": [
@@ -482,10 +581,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PolicyConfiguration"
-                  }
+                  "$ref": "#/components/schemas/PolicyConfigurationList"
                 }
               }
             }
@@ -1132,10 +1228,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GitRepository"
-                  }
+                  "$ref": "#/components/schemas/GitRepositoryList"
                 }
               }
             }
@@ -9911,6 +10004,98 @@
         ]
       }
     },
+    "/{organization}/_apis/projects": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "x-ms-docs-override-version": "7.1",
+        "x-ms-vss-resource": "projects",
+        "x-ms-vss-method": "GetProjects",
+        "description": "Get all projects in the organization that the authenticated user has access to.",
+        "operationId": "Projects_List",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization",
+            "description": "The name of the Azure DevOps organization.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "stateFilter",
+            "description": "Filter on team projects in a specific team project state (default: WellFormed).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "$top",
+            "description": "Maximum number of projects to return.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "in": "query",
+            "name": "$skip",
+            "description": "Number of projects to skip.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "in": "query",
+            "name": "continuationToken",
+            "description": "Pointer that shows how many projects have already been fetched.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "getDefaultTeamImageUrl",
+            "description": "Whether to include the default team image URL.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/api-Version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamProjectReferenceList"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "vso.project"
+            ]
+          }
+        ]
+      }
+    },
     "/{organization}/_apis/wit/wiql": {
       "post": {
         "tags": [
@@ -15985,9 +16170,60 @@
             "type": "boolean"
           },
           "settings": {
-            "description": "The policy configuration settings.",
+            "$ref": "#/components/schemas/PolicyConfigurationSettings"
+          }
+        }
+      },
+      "PolicyConfigurationSettings": {
+        "description": "Policy configuration settings. The exact field set depends on the policy type; only the fields commonly used for scoping and the built-in branch-policy types are modeled here. Unknown fields are silently ignored by Jackson (FAIL_ON_UNKNOWN_PROPERTIES is disabled).",
+        "type": "object",
+        "properties": {
+          "scope": {
+            "description": "The repository/branch scope of this policy. Each item identifies a repository and/or ref the policy applies to.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PolicyConfigurationSettingsScope"
+            }
+          },
+          "minimumApproverCount": {
+            "description": "Minimum number of approving reviewers required (minimum-reviewers policy).",
+            "type": "integer",
+            "format": "int32"
+          },
+          "creatorVoteCounts": {
+            "description": "Whether the pull request creator's own vote counts toward the approver count.",
+            "type": "boolean"
+          },
+          "allowDownvotes": {
+            "description": "Whether reviewers may reject the pull request without blocking it.",
+            "type": "boolean"
+          },
+          "resetOnSourcePush": {
+            "description": "Whether reviewer votes are reset when the source branch is updated.",
+            "type": "boolean"
+          },
+          "blockLastPusherVote": {
+            "description": "Whether the most recent pusher to the source branch is disallowed from approving.",
+            "type": "boolean"
+          }
+        }
+      },
+      "PolicyConfigurationSettingsScope": {
+        "description": "Scope item for a policy configuration: identifies a repository and/or ref the policy applies to.",
+        "type": "object",
+        "properties": {
+          "repositoryId": {
+            "description": "The repository ID this scope applies to. May be null for project-wide scope.",
             "type": "string",
-            "format": "JObject"
+            "format": "uuid"
+          },
+          "refName": {
+            "description": "The ref name (e.g. refs/heads/main) this scope applies to. May be null when the scope applies to the entire repository.",
+            "type": "string"
+          },
+          "matchKind": {
+            "description": "How refName is matched. Typical values: 'Exact', 'Prefix', 'DefaultBranch'.",
+            "type": "string"
           }
         }
       },
@@ -17822,6 +18058,51 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/WorkItem"
+            }
+          }
+        }
+      },
+      "TeamProjectReferenceList": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "value": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamProjectReference"
+            }
+          }
+        }
+      },
+      "GitRepositoryList": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "value": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GitRepository"
+            }
+          }
+        }
+      },
+      "PolicyConfigurationList": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "value": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PolicyConfiguration"
             }
           }
         }

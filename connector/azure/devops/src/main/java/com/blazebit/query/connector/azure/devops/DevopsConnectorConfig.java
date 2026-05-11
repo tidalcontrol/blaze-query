@@ -34,10 +34,11 @@ public final class DevopsConnectorConfig {
 	}
 
 	/**
-	 * Bundles the two API clients together with the organization and project required by the
+	 * Bundles the two API clients together with the organization required by the
 	 * Azure DevOps connector. {@code apiClient} should point to
 	 * {@code https://app.vssps.visualstudio.com} (accounts / profile / Git APIs) and
-	 * {@code witApiClient} should point to {@code https://dev.azure.com} (Work Item Tracking API).
+	 * {@code witApiClient} should point to {@code https://dev.azure.com} (Work Item Tracking
+	 * and Core APIs).
 	 *
 	 * @author Martijn Sprengers
 	 * @since 1.0.8
@@ -47,23 +48,20 @@ public final class DevopsConnectorConfig {
 		private final ApiClient apiClient;
 		private final ApiClient witApiClient;
 		private final String organization;
-		private final String project;
 
 		/**
 		 * Creates a new Azure DevOps account configuration.
 		 *
 		 * @param apiClient the API client for the accounts/profile/Git endpoints
 		 *   ({@code https://app.vssps.visualstudio.com})
-		 * @param witApiClient the API client for the Work Item Tracking endpoints
+		 * @param witApiClient the API client for the Work Item Tracking and Core endpoints
 		 *   ({@code https://dev.azure.com})
 		 * @param organization the Azure DevOps organization name
-		 * @param project the Azure DevOps project name or ID
 		 */
-		public Account(ApiClient apiClient, ApiClient witApiClient, String organization, String project) {
+		public Account(ApiClient apiClient, ApiClient witApiClient, String organization) {
 			this.apiClient = Objects.requireNonNull( apiClient, "apiClient must not be null" );
 			this.witApiClient = Objects.requireNonNull( witApiClient, "witApiClient must not be null" );
 			this.organization = Objects.requireNonNull( organization, "organization must not be null" );
-			this.project = Objects.requireNonNull( project, "project must not be null" );
 		}
 
 		/**
@@ -76,7 +74,7 @@ public final class DevopsConnectorConfig {
 		}
 
 		/**
-		 * Returns the API client for the Work Item Tracking endpoints.
+		 * Returns the API client for the Work Item Tracking and Core endpoints.
 		 *
 		 * @return the WIT API client
 		 */
@@ -91,15 +89,6 @@ public final class DevopsConnectorConfig {
 		 */
 		public String getOrganization() {
 			return organization;
-		}
-
-		/**
-		 * Returns the Azure DevOps project name or ID.
-		 *
-		 * @return the project name or ID
-		 */
-		public String getProject() {
-			return project;
 		}
 	}
 }
